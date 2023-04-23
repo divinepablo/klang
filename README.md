@@ -10,3 +10,9 @@ mainly because of the usage of SLY and not knowing enough C++ libraries that cou
 ### TODO:
 * [x] Finish bytecode
 * [ ] Finish compiler
+  * [ ] Add loops
+  * [ ] Add `+=, -=. *=. /=, ++, --` Operators
+  * [ ] Add arrays
+  * [ ] Add if statements
+  * [ ] Add `CALL_EXTERNAL` support
+  * [ ] Add macros
