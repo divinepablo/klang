@@ -1,8 +1,12 @@
 # klang
 worlds best new interpretted language
 
-# why?
+## why?
 i was bored one day
 
-# why python?
+## why python?
 mainly because of the usage of SLY and not knowing enough C++ libraries that could achieve similar
+
+### TODO:
+[x] Finish bytecode
+[ ] Finish compiler
