@@ -237,6 +237,8 @@ class Interpreter:
                 self.functions[currentFunction].code.append(line)
             elif line.strip() in opcodes:
                 self.functions[currentFunction].code.append(line)
+            elif line.split()[0] == 'FILLER':
+                continue
             elif not currentFunction:
                 raise Exception(f'No function defined for instruction: {line}')
             else:

@@ -67,13 +67,25 @@ class KPiler:
                 for arg in inst[2]:
                     result.extend(self.compile_instruction(func, arg))
                 result.append(f'CALL {inst[1]} {self.func_to_argc[inst[1]]}')
+            elif opcode == 'EQ':
+                _, expression1, expression2 = inst
+                result.extend(self.compile_instruction(func, expression1))
+                result.extend(self.compile_instruction(func, expression2))
+                result.append('COMPARE_NEQ')
+            elif opcode == 'NEQ':
+                _, expression1, expression2 = inst
+                result.extend(self.compile_instruction(func, expression1))
+                result.extend(self.compile_instruction(func, expression2))
+                result.append('COMPARE_EQ')
             elif opcode == 'IF':
+                print(func.bytecode_index)
                 expression = inst[1]
                 result.extend(self.compile_instruction(func, expression))
                 hi = []
                 for hello in inst[2][1]:
                     hi.extend(self.compile_instruction(func, hello))
-                result.append(f'JUMP_IF_FALSE {func.bytecode_index + 2 + len(hi)}')
+                jump_index = func.bytecode_index + len(result) + len(hi) + 1
+                result.append(f'JUMP_IF_TRUE {jump_index}')
                 result.extend(hi)
                 # for statement in inst[2][1]:
                 #     result.extend()

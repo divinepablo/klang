@@ -1,6 +1,5 @@
 void main() {
-    if (true) {
-        print("inif");
+    if (false == true) {
+        print("lmfao");
     }
-    print("afterif");
 }
