@@ -8,11 +8,11 @@ i was bored one day
 mainly because of the usage of SLY and not knowing enough C++ libraries that could achieve similar
 
 ### TODO:
-* [x] Finish bytecode
+* [x] ~~Finish bytecode~~
 * [ ] Finish compiler
   * [ ] Add loops
   * [ ] Add `+=, -=. *=. /=, ++, --` Operators
   * [ ] Add arrays
-  * [ ] Add if statements
+  * [x] ~~Add if statements~~
   * [ ] Add `CALL_EXTERNAL` support
   * [ ] Add macros
