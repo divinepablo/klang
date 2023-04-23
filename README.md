@@ -8,5 +8,5 @@ i was bored one day
 mainly because of the usage of SLY and not knowing enough C++ libraries that could achieve similar
 
 ### TODO:
-[x] Finish bytecode
-[ ] Finish compiler
+* [x] Finish bytecode
+* [ ] Finish compiler
