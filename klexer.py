@@ -3,10 +3,10 @@ from sly import Lexer, Parser
 
 class KLexer(Lexer):
     tokens = {
-        ID, IMPORT, FUNCTION,
+        ID, IMPORT,
         PRINT,
         IF, ELSE, WHILE,
-        REFERENCE, VOID_TYPE, FLOAT_TYPE, INT_TYPE, BOOL_TYPE, STRING_TYPE,
+        VOID_TYPE, FLOAT_TYPE, INT_TYPE, BOOL_TYPE, STRING_TYPE,
         FLOAT, INT, STRING,
         TRUE, FALSE,
         PLUS, TIMES, MINUS, DIVIDE, MODULO, 
@@ -20,10 +20,9 @@ class KLexer(Lexer):
     # Tokens
     ID = r'[a-zA-Z_][a-zA-Z0-9_]*'
     ID['import'] = IMPORT
-    ID['funct'] = FUNCTION
     ID['print'] = PRINT  # me waiting for a way better way to do this
     ID['void'] = VOID_TYPE
-    ID['ref'] = REFERENCE
+    # ID['ref'] = REFERENCE # Scrapped for now
     ID['if'] = IF
     ID['else'] = ELSE
     ID['while'] = WHILE

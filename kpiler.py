@@ -1,6 +1,7 @@
+from typing import Dict
 from kparser import KParser
 from klexer import KLexer
-
+from dataclasses import dataclass, field
 def hid(t):
     if isinstance(t, tuple):
         return " ".join([hid(x) for x in t])
@@ -9,67 +10,105 @@ def hid(t):
     else:
         return str(t)
 
+@dataclass
+class FunctionDefinition:
+    name: str
+    bytecode_index: int = 0
+    code: list[str] = field(default_factory=list)
+    local_variables: Dict[str, int] = field(default_factory=dict)
+    local_variable_to_type: Dict[str, type] = field(default_factory=dict)
+
 class KPiler:
     def __init__(self) -> None:
         self.func_to_argc = {}
+        self.types = {
+            'int': int,
+            'float': float,
+            'string': str,
+        }
 
     def compile_function(self, func):
-        func_vars = {}
-        func_vars_to_types = {}
         output = []
         name = func[1]
         block = func[4][1]
         args = func[3][1]
         arg_count = len(args)
         self.func_to_argc[name] = arg_count
+        func_def = FunctionDefinition(name)
         output.append(f"DEFINE {name} {arg_count}")
-        for hi in args: # arguments
-            func_vars[hi[1]] = len(func_vars)
-            func_vars_to_types[hi[1]] = type(hi[1])
-        for inst in block: # block
-            result = self.compile_instruction(func_vars, inst)
-            if isinstance(result, list):
-                for res in result:
-                    output.append(res)
-            else:
-                output.append(result)
-        
+        for hi in args:
+            func_def.local_variables[hi[1]] = len(func_def.local_variables)
+            func_def.local_variable_to_type[hi[1]] = type(hi[1])
+        for inst in block:
+            result = self.compile_instruction(func_def, inst)
+            func_def.bytecode_index += len(result)
+            output.extend(result)
         output.append('RETURN')
+        
         output.append('END')
+        
         return output
-    def compile_instruction(self, func_vars, inst):
+    def compile_instruction(self, func: FunctionDefinition, inst):
+        result = []
         if isinstance(inst, tuple):
             opcode = inst[0]
             if opcode == 'var':
-                return f"GET_LOCAL {func_vars[inst[1]]}"
+                result.append(f"GET_LOCAL {func.local_variables[inst[1]]}")
+            elif opcode == 'DECLARE':
+                result.extend(self.compile_instruction(func, inst[3]))
+                index = len(func.local_variables)
+                func.local_variables[inst[2]] = index
+                func.local_variable_to_type[inst[2]] = self.types[inst[1]]
+                result.append(f'SET_LOCAL {index}')
             elif opcode == 'PRINT':
-                hi = []
-                hi.append(self.compile_instruction(func_vars, inst[1]))
-                hi.append('PRINT')
-                return hi
+                result.extend(self.compile_instruction(func, inst[1]))
+                result.append('PRINT')
             elif opcode == 'CALL':
-                hi = []
                 for arg in inst[2]:
-                    hi.append(self.compile_instruction(func_vars, arg))
-                hi.append(f'CALL {inst[1]} {self.func_to_argc[inst[1]]}')
-                return hi
+                    result.extend(self.compile_instruction(func, arg))
+                result.append(f'CALL {inst[1]} {self.func_to_argc[inst[1]]}')
+            elif opcode == 'IF':
+                expression = inst[1]
+                result.extend(self.compile_instruction(func, expression))
+                hi = []
+                for hello in inst[2][1]:
+                    hi.extend(self.compile_instruction(func, hello))
+                result.append(f'JUMP_IF_FALSE {func.bytecode_index + 2 + len(hi)}')
+                result.extend(hi)
+                # for statement in inst[2][1]:
+                #     result.extend()
+            elif opcode == 'ELSE':
+                for arg in inst[2]:
+                    result.extend(self.compile_instruction(func, arg))
+                result.append(f'JUMP_IF_TRUE {inst[1]} {self.func_to_argc[inst[1]]}')
+                result.append(f'JUMP {inst[1]} {self.func_to_argc[inst[1]]}')
+                
+            else:
+                raise Exception(f'Unknown opcode \'{opcode}\': "{inst}"')
         elif isinstance(inst, str):
-            return f"PUSH_STRING \"{inst}\""
+            result.append(f"PUSH_STRING \"{inst}\"") 
+        elif isinstance(inst, bool):
+            result.append(f"PUSH_VALUE {int(inst)}")
         else:
-            return f"PUSH_VALUE {inst}"
-    def compile(self, src):
+            result.append(f"PUSH_VALUE {inst}")
+        return result
+    def compile(self, src: str):
         lexer = KLexer()
         parser = KParser()
         parsed = parser.parse(lexer.tokenize(src))
-        # with open('test.kmasm' ,'w') as f:
-        #     f.write('\n'.join(hid(hello) for hello in parsed))
-        output = ["# Automattically generated bytecode"]
+        with open(f'{src.encode().hex()[:8]}.kmasm' ,'w') as f:
+            for p in parsed:
+                f.write(f'{hid(p)}\n')
+        output = []
         
         
         for hi in parsed:
             opcode = hi[0]
             if opcode == 'DECLARE_FUNC':
                 output.extend(self.compile_function(hi))
+            elif opcode == 'IMPORT':
+                with open(hi[1], 'r') as f:
+                    output.extend(self.compile(f.read()).split('\n'))
         return '\n'.join(output)
 
 def main(source: str):

@@ -25,7 +25,9 @@ opcodes = [
     'DEC',
     'RETURN',
     'COMPARE_EQ',
+    'COMPARE_NEQ',
     'COMPARE_LT',
+    'COMPARE_GT',
     'JUMP',
     'JUMP_IF_FALSE',
     'JUMP_IF_TRUE',
@@ -80,53 +82,63 @@ class Interpreter:
                 value_b = int(instruction.split()[2])
                 a = func.stack.pop()
                 func.stack.append(a[value_a:value_b])
-            elif instruction == 'ADD':
+            elif instruction.strip() == 'ADD':
                 a = func.stack.pop()
                 b = func.stack.pop()
                 result = a + b
-            elif instruction == 'POP':
+            elif instruction.strip() == 'POP':
                 func.stack.pop()
-            elif instruction == 'POLL':
+            elif instruction.strip() == 'POLL':
                 func.stack.pop(0)
                 func.stack.append(result)
-            elif instruction == 'INC':
+            elif instruction.strip() == 'INC':
                 a = func.stack.pop()
                 result = a + 1
                 func.stack.append(result)
-            elif instruction == 'DEC':
+            elif instruction.strip() == 'DEC':
                 a = func.stack.pop()
                 b = func.stack.pop()
                 result = a - 1
                 func.stack.append(result)
-            elif instruction == 'SUB':
+            elif instruction.strip() == 'SUB':
                 a = func.stack.pop()
                 b = func.stack.pop()
                 result = a - b
                 func.stack.append(result)
-            elif instruction == 'MUL':
+            elif instruction.strip() == 'MUL':
                 a = func.stack.pop()
                 b = func.stack.pop()
                 result = a * b
                 func.stack.append(result)
-            elif instruction == 'DIV':
+            elif instruction.strip() == 'DIV':
                 a = func.stack.pop()
                 b = func.stack.pop()
                 result = a / b
                 func.stack.append(result)
-            elif instruction == 'POP':
+            elif instruction.strip() == 'POP':
                 func.stack.pop()
-            elif instruction == 'DUP':
+            elif instruction.strip() == 'DUP':
                 value = func.stack[-1]
                 func.stack.append(value)
-            elif instruction == 'COMPARE_EQ':
+            elif instruction.strip() == 'COMPARE_EQ':
                 a = func.stack.pop()
                 b = func.stack.pop()
                 result = 1 if a == b else 0
                 func.stack.append(result)
-            elif instruction == 'COMPARE_LT':
+            elif instruction.strip() == 'COMPARE_LT':
                 a = func.stack.pop()
                 b = func.stack.pop()
                 result = 1 if b < a else 0
+                func.stack.append(result)
+            elif instruction.strip() == 'COMPARE_NEQ':
+                a = func.stack.pop()
+                b = func.stack.pop()
+                result = 1 if a != b else 0
+                func.stack.append(result)
+            elif instruction.strip() == 'COMPARE_GT':
+                a = func.stack.pop()
+                b = func.stack.pop()
+                result = 1 if b > a else 0
                 func.stack.append(result)
             elif instruction.startswith('JUMP_IF_FALSE'):
                 target = int(instruction.split()[1])
@@ -141,22 +153,22 @@ class Interpreter:
             elif instruction.startswith('JUMP'):
                 target = int(instruction.split()[1])
                 func.pc = target
-            elif instruction == 'DUP_BTM':
+            elif instruction.strip() == 'DUP_BTM':
                 func.stack.append(func.stack[0])
-            elif instruction == 'PRINT':
+            elif instruction.strip() == 'PRINT':
                 result = func.stack.pop()
                 print(result)
-            elif instruction == 'ARRAY_NEW':
+            elif instruction.strip() == 'ARRAY_NEW':
                 func.stack.append([])
-            elif instruction == 'ARRAY_ADD':
+            elif instruction.strip() == 'ARRAY_ADD':
                 new = func.stack.pop()
                 func.stack[-1].append(new)
-            elif instruction == 'RETURN':
+            elif instruction.strip() == 'RETURN':
                 ret = None
                 if len(func.stack) > 0:
                     ret = func.stack.pop()
                 return ret
-            elif instruction == 'ARRAY_INDEX':
+            elif instruction.strip() == 'ARRAY_INDEX':
                 index = int(instruction.split()[1])
                 func.stack.append(func.stack[-1][index])
             elif instruction.startswith('CALL_EXTERNAL'):

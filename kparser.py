@@ -117,12 +117,9 @@ class KParser(Parser):
     def statement(self, p):
         return p.assignment
 
-    @_('IMPORT ID')
+    @_('IMPORT STRING')
     def import_statement(self, p):
-
-        lexer = KLexer()
-        with open(p.ID.replace('.', '/') + '.test', 'r') as f:
-            return self.parse(lexer.tokenize(f.read()))
+        return ('IMPORT', p.STRING)
 
     @_('FLOAT_TYPE')
     def type(self, p):
@@ -155,6 +152,10 @@ class KParser(Parser):
     @_('expression EQ expression')
     def expression(self, p):
         return ('EQ', p.expression0, p.expression1)
+    
+    @_('expression NEQ expression')
+    def expression(self, p):
+        return ('NEQ', p.expression0, p.expression1)
 
     @_('arg_list')
     def expression(self, p):
@@ -198,6 +199,10 @@ class KParser(Parser):
     @_('if_statement')
     def statement(self, p):
         return p.if_statement
+    
+    @_('while_loop_statement')
+    def statement(self, p):
+        return p.while_loop_statement
 
     @_('type ID LPAREN farg_list RPAREN "{" statements "}"')
     def function_define(self, p):
@@ -206,10 +211,14 @@ class KParser(Parser):
     @_('IF LPAREN expression RPAREN "{" statements "}"')
     def if_statement(self, p):
         return ("IF", p.expression, ('block', p.statements))
+    
+    @_('WHILE LPAREN expression RPAREN "{" statements "}"')
+    def while_loop_statement(self, p):
+        return ("WHILE", p.expression, ('block', p.statements))
 
     @_('IF LPAREN expression RPAREN "{" statements "}" ELSE "{" statements "}"')
     def if_statement(self, p):
-        return ("ELSE", p.expression, ('block', p.statements1))
+        return ("ELSE", ('if', p.expression, ('if_block', p.statements1)), ('block', p.statements1))
 
     @_('IF LPAREN expression RPAREN "{" statements "}" ELSE IF LPAREN expression RPAREN "{" statements "}"')
     def if_statement(self, p):
