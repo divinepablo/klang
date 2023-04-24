@@ -6,12 +6,13 @@ class KParser(Parser):
     tokens = KLexer.tokens
     # debugfile = 'parser.out'
     precedence = (
+        ('right', ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN),
+        ('left', EQ, NEQ),
+        ('left', LT, LTE, GT, GTE),
         ('left', PLUS, MINUS),
         ('left', TIMES, DIVIDE),
+        ('left', INCREM, DECREM),
     )
-
-    def __init__(self):
-        self.vars = {}
 
     @_('expression')
     def program(self, p):
@@ -148,6 +149,29 @@ class KParser(Parser):
     @_('ID ASSIGN expression')
     def assignment(self, p):
         return ("ASSIGN", p.ID, p.expression)
+    
+    @_('ID ADDASSIGN expression')
+    def assignment(self, p):
+        return ("ASSIGN", p.ID, ('ADD', ('var', p.ID), p.expression))
+    @_('ID SUBASSIGN expression')
+    def assignment(self, p):
+        return ("ASSIGN", p.ID, ('SUB', ('var', p.ID), p.expression))
+    @_('ID MULASSIGN expression')
+    def assignment(self, p):
+        return ("ASSIGN", p.ID, ('MUL', ('var', p.ID), p.expression))
+    @_('ID DIVASSIGN expression')
+    def assignment(self, p):
+        return ("ASSIGN", p.ID, ('DIV', ('var', p.ID), p.expression))
+    @_('ID MODASSIGN expression')
+    def assignment(self, p):
+        return ("ASSIGN", p.ID, ('MOD', ('var', p.ID), p.expression))
+    
+    @_('ID INCREM')
+    def assignment(self, p):
+        return ("ASSIGN", p.ID, ('ADD', ('var', p.ID), 1))
+    @_('ID DECREM')
+    def assignment(self, p):
+        return ("ASSIGN", p.ID, ('SUB', ('var', p.ID), 1))
 
     @_('expression EQ expression')
     def expression(self, p):
@@ -156,7 +180,23 @@ class KParser(Parser):
     @_('expression NEQ expression')
     def expression(self, p):
         return ('NEQ', p.expression0, p.expression1)
+    
+    @_('expression GT expression')
+    def expression(self, p):
+        return ('GT', p.expression0, p.expression1)
+    
+    @_('expression LT expression')
+    def expression(self, p):
+        return ('LT', p.expression0, p.expression1)
 
+    @_('expression GTE expression')
+    def expression(self, p):
+        return ('GTE', p.expression0, p.expression1)
+    
+    @_('expression LTE expression')
+    def expression(self, p):
+        return ('LTE', p.expression0, p.expression1)
+    
     @_('arg_list')
     def expression(self, p):
         return p.arg_list

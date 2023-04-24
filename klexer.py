@@ -11,7 +11,8 @@ class KLexer(Lexer):
         TRUE, FALSE,
         PLUS, TIMES, MINUS, DIVIDE, MODULO, 
         INCREM, DECREM, ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN,
-        NEQ, EQ, ASSIGN, LPAREN, RPAREN, LBRACKET, RBRACKET,
+        NEQ, EQ, GT, LT, GTE, LTE,
+        ASSIGN, LPAREN, RPAREN, LBRACKET, RBRACKET,
         # LBRACE, RBRACE,
         COMMA, SEP
     }
@@ -40,14 +41,15 @@ class KLexer(Lexer):
                 '.', ','}
 
     # Special symbols
-    PLUS = r'\+'
-    INCREM = r'\+\+'
-    DECREM = r'--'
+    
     ADDASSIGN = r'\+='
     SUBASSIGN = r'-='
     MULASSIGN = r'\*='
     DIVASSIGN = r'/='
     MODASSIGN = r'%='
+    INCREM = r'\+\+'
+    DECREM = r'--'
+    PLUS = r'\+'
     MINUS = r'-'
     TIMES = r'\*'
     DIVIDE = r'/'
@@ -59,6 +61,10 @@ class KLexer(Lexer):
     RPAREN = r'\)'
     LBRACKET = r'\['
     RBRACKET = r'\]'
+    GT = r'>'
+    LT = r'<'
+    GTE = r'>='
+    LTE = r'<='
     # LBRACE = r'\{'
     # RBRACE = r'\}'
     SEP = r';'

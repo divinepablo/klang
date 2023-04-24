@@ -4,7 +4,7 @@ from klexer import KLexer
 from dataclasses import dataclass, field
 def hid(t):
     if isinstance(t, tuple):
-        return " ".join([hid(x) for x in t])
+        return "\n".join([hid(x) for x in t])
     if isinstance(t, list):
         return '['+", ".join([hid(x) for x in t])+']'
     else:
@@ -48,6 +48,24 @@ class KPiler:
         output.append('END')
         
         return output
+    
+    def invert_condition(self, instruction):
+        outcode = ""
+        opcode = instruction.split()[0]
+        if opcode == 'EQ':
+            outcode = instruction.replace(opcode, 'COMPARE_NEQ')
+        elif opcode == 'NEQ':
+            outcode = instruction.replace(opcode, 'COMPARE_EQ')
+        elif opcode == 'GT':
+            outcode = instruction.replace(opcode, 'COMPARE_LTE')
+        elif opcode == 'LT':
+            outcode = instruction.replace(opcode, 'COMPARE_GTE')
+        elif opcode == 'GTE':
+            outcode = instruction.replace(opcode, 'COMPARE_LT')
+        elif opcode == 'LTE':
+            outcode = instruction.replace(opcode, 'COMPARE_GT')
+        return outcode
+
     def compile_instruction(self, func: FunctionDefinition, inst):
         result = []
         if isinstance(inst, tuple):
@@ -60,6 +78,31 @@ class KPiler:
                 func.local_variables[inst[2]] = index
                 func.local_variable_to_type[inst[2]] = self.types[inst[1]]
                 result.append(f'SET_LOCAL {index}')
+            elif opcode == 'ASSIGN':
+                result.extend(self.compile_instruction(func, inst[2]))
+                print("Added:", result)
+                index = func.local_variables[inst[1]]
+                result.append(f'SET_LOCAL {index}')
+            elif opcode == 'ADD':
+                result.extend(self.compile_instruction(func, inst[1]))
+                result.extend(self.compile_instruction(func, inst[2]))
+                result.append(f'ADD')
+            elif opcode == 'SUB':
+                result.extend(self.compile_instruction(func, inst[1]))
+                result.extend(self.compile_instruction(func, inst[2]))
+                result.append(f'SUB')
+            elif opcode == 'MUL':
+                result.extend(self.compile_instruction(func, inst[1]))
+                result.extend(self.compile_instruction(func, inst[2]))
+                result.append(f'MUL')
+            elif opcode == 'DIV':
+                result.extend(self.compile_instruction(func, inst[1]))
+                result.extend(self.compile_instruction(func, inst[2]))
+                result.append(f'DIV')
+            elif opcode == 'MOD':
+                result.extend(self.compile_instruction(func, inst[1]))
+                result.extend(self.compile_instruction(func, inst[2]))
+                result.append(f'MOD')
             elif opcode == 'PRINT':
                 result.extend(self.compile_instruction(func, inst[1]))
                 result.append('PRINT')
@@ -71,12 +114,32 @@ class KPiler:
                 _, expression1, expression2 = inst
                 result.extend(self.compile_instruction(func, expression1))
                 result.extend(self.compile_instruction(func, expression2))
-                result.append('COMPARE_NEQ')
+                result.append('COMPARE_EQ')
             elif opcode == 'NEQ':
                 _, expression1, expression2 = inst
                 result.extend(self.compile_instruction(func, expression1))
                 result.extend(self.compile_instruction(func, expression2))
-                result.append('COMPARE_EQ')
+                result.append('COMPARE_NEQ')
+            elif opcode == 'GT':
+                _, expression1, expression2 = inst
+                result.extend(self.compile_instruction(func, expression1))
+                result.extend(self.compile_instruction(func, expression2))
+                result.append('COMPARE_GT')
+            elif opcode == 'LT':
+                _, expression1, expression2 = inst
+                result.extend(self.compile_instruction(func, expression1))
+                result.extend(self.compile_instruction(func, expression2))
+                result.append('COMPARE_LT')
+            elif opcode == 'GTE':
+                _, expression1, expression2 = inst
+                result.extend(self.compile_instruction(func, expression1))
+                result.extend(self.compile_instruction(func, expression2))
+                result.append('COMPARE_GTE')
+            elif opcode == 'LTE':
+                _, expression1, expression2 = inst
+                result.extend(self.compile_instruction(func, expression1))
+                result.extend(self.compile_instruction(func, expression2))
+                result.append('COMPARE_LTE')
             elif opcode == 'IF':
                 print(func.bytecode_index)
                 expression = inst[1]
@@ -84,11 +147,21 @@ class KPiler:
                 hi = []
                 for hello in inst[2][1]:
                     hi.extend(self.compile_instruction(func, hello))
+                    hi[-1] = self.invert_condition(hi[-1])
                 jump_index = func.bytecode_index + len(result) + len(hi) + 1
                 result.append(f'JUMP_IF_TRUE {jump_index}')
                 result.extend(hi)
-                # for statement in inst[2][1]:
-                #     result.extend()
+            elif opcode == 'WHILE':
+                print(func.bytecode_index)
+                expression = inst[1]
+                result.extend(self.compile_instruction(func, expression))
+                hi = []
+                for hello in inst[2][1]:
+                    hi.extend(self.compile_instruction(func, hello))
+                hi.append(f'JUMP {func.bytecode_index}')
+                jump_index = func.bytecode_index + len(result) + len(hi) + 1
+                result.append(f'JUMP_IF_FALSE {jump_index}')
+                result.extend(hi)
             elif opcode == 'ELSE':
                 for arg in inst[2]:
                     result.extend(self.compile_instruction(func, arg))
