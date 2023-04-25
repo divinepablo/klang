@@ -86,7 +86,6 @@ class KPiler:
                 result.append(f'SET_LOCAL {index}')
             elif opcode == 'ASSIGN':
                 result.extend(self.compile_instruction(func, inst[2]))
-                print("Added:", result)
                 index = func.local_variables[inst[1]]
                 result.append(f'SET_LOCAL {index}')
             elif opcode == 'ADD':
@@ -109,9 +108,6 @@ class KPiler:
                 result.extend(self.compile_instruction(func, inst[1]))
                 result.extend(self.compile_instruction(func, inst[2]))
                 result.append(f'MOD')
-            elif opcode == 'PRINT':
-                result.extend(self.compile_instruction(func, inst[1]))
-                result.append('PRINT')
             elif opcode == 'CALL':
                 for arg in inst[2]:
                     result.extend(self.compile_instruction(func, arg))

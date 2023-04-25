@@ -21,7 +21,6 @@ class KLexer(Lexer):
     # Tokens
     ID = r'[a-zA-Z_][a-zA-Z0-9_]*'
     ID['import'] = IMPORT
-    ID['print'] = PRINT  # me waiting for a way better way to do this
     ID['void'] = VOID_TYPE
     ID['null'] = NULL
     # ID['ref'] = REFERENCE # Scrapped for now

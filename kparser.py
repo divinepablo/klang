@@ -309,7 +309,3 @@ class KParser(Parser):
     @_('ID LPAREN arg_list RPAREN')
     def function_call(self, p):
         return ("CALL", p.ID, p.arg_list)
-
-    @_('PRINT LPAREN expression RPAREN')
-    def function_call(self, p):
-        return ("PRINT", p.expression)

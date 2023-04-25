@@ -31,7 +31,7 @@ opcodes = [
     'JUMP',
     'JUMP_IF_FALSE',
     'JUMP_IF_TRUE',
-    'PRINT',
+    # 'PRINT', # literally no use when i have predefined functions but was one of the best tests for stack
     'ARRAY_NEW',
     'ARRAY_ADD',
     'ARRAY_INDEX',
@@ -49,12 +49,12 @@ predefined_functions = {
     'input': input,
     'length': len,
     'substring': substring,
-    'println': println,
+    'print': println,
 }
 
 predefined_functions_to_argc = {
     'input': 1,
     'length': 1,
     'substring': 3,
-    'println': -1,
+    'print': -1,
 }

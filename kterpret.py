@@ -143,9 +143,6 @@ class Interpreter:
                     func.pc = target
                 elif instruction.strip() == 'DUP_BTM':
                     func.stack.append(func.stack[0])
-                elif instruction.strip() == 'PRINT':
-                    result = func.stack.pop()
-                    print(result)
                 elif instruction.strip() == 'ARRAY_NEW':
                     func.stack.append([])
                 elif instruction.strip() == 'ARRAY_ADD':
