@@ -14,6 +14,6 @@ mainly because of the usage of SLY and not knowing enough C++ libraries that cou
   * [x] ~~Add `+=, -=. *=. /=, ++, --` Operators~~
   * [ ] Add arrays
   * [x] ~~Add if statements~~
-  * [ ] Add `CALL_EXTERNAL` support
+  * ~~[ ] Add `CALL_EXTERNAL` support~~ (feature scrapped)
   * [ ] Add macros
-  * [ ] Add actual type checking
+  * [x] ~~Add actual type checking~~
