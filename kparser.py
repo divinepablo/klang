@@ -42,6 +42,10 @@ class KParser(Parser):
     def statements(self, p):
         return []
 
+    @_('empty')
+    def expressions(self, p):
+        return []
+
     @_('statement')
     def statements(self, p):
         return (p.statement, )
@@ -57,6 +61,15 @@ class KParser(Parser):
     @_('type')
     def program(self, p):
         return p.type
+
+
+    @_('expression')
+    def expressions(self, p):
+        return [p.expression]
+
+    @_('expressions "," expression')
+    def expressions(self, p):
+        return p.expressions + [p.expression]
 
     @_('INT', 'FLOAT', "STRING")
     def expression(self, p):
@@ -97,10 +110,18 @@ class KParser(Parser):
     @_('FALSE')
     def expression(self, p):
         return False
+    
+    @_('NULL')
+    def expression(self, p):
+        return None
 
     @_('statement SEP')
     def statement(self, p):
         return p.statement
+    
+    @_('expression SEP')
+    def statement(self, p):
+        return p.expression
 
     @_('statement')
     def statement(self, p):
@@ -137,6 +158,22 @@ class KParser(Parser):
     @_('BOOL_TYPE')
     def type(self, p):
         return 'bool'
+    
+    @_('FLOAT_TYPE LBRACKET RBRACKET')
+    def type(self, p):
+        return 'float[]'
+
+    @_('INT_TYPE LBRACKET RBRACKET')
+    def type(self, p):
+        return 'int[]'
+
+    @_('STRING_TYPE LBRACKET RBRACKET')
+    def type(self, p):
+        return 'string[]'
+
+    @_('BOOL_TYPE LBRACKET RBRACKET')
+    def type(self, p):
+        return 'bool[]'
 
     @_('VOID_TYPE')
     def type(self, p):
@@ -209,6 +246,11 @@ class KParser(Parser):
     def arg_list(self, p):
         p.arg_list.append(p.expression)
         return p.arg_list
+    
+
+    @_('LBRACKET expressions RBRACKET')
+    def expression(self, p):
+        return [p.expressions]
 
     @_('farg_list')
     def expression(self, p):
@@ -233,7 +275,7 @@ class KParser(Parser):
         return p.function_define
 
     @_('function_call')
-    def statement(self, p):
+    def expression(self, p):
         return p.function_call
 
     @_('if_statement')

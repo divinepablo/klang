@@ -2,6 +2,7 @@ from typing import Dict
 from kparser import KParser
 from klexer import KLexer
 from dataclasses import dataclass, field
+from shared import predefined_functions_to_argc
 def hid(t):
     if isinstance(t, tuple):
         return "\n".join([hid(x) for x in t])
@@ -20,11 +21,16 @@ class FunctionDefinition:
 
 class KPiler:
     def __init__(self) -> None:
-        self.func_to_argc = {}
+        self.func_to_argc = dict(predefined_functions_to_argc)
         self.types = {
             'int': int,
             'float': float,
             'string': str,
+            'bool': bool,
+            'string[]': list[str],
+            'int[]': list[int],
+            'float[]': list[float],
+            'bool[]': list[bool],
         }
 
     def compile_function(self, func):
@@ -109,7 +115,7 @@ class KPiler:
             elif opcode == 'CALL':
                 for arg in inst[2]:
                     result.extend(self.compile_instruction(func, arg))
-                result.append(f'CALL {inst[1]} {self.func_to_argc[inst[1]]}')
+                result.append(f'CALL {inst[1]} {len(inst[2])}')
             elif opcode == 'EQ':
                 _, expression1, expression2 = inst
                 result.extend(self.compile_instruction(func, expression1))
@@ -174,6 +180,8 @@ class KPiler:
             result.append(f"PUSH_STRING \"{inst}\"") 
         elif isinstance(inst, bool):
             result.append(f"PUSH_VALUE {int(inst)}")
+        elif isinstance(inst, list):
+            result.append(f"ARRAY_NEW")
         else:
             result.append(f"PUSH_VALUE {inst}")
         return result

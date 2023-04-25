@@ -8,7 +8,7 @@ class KLexer(Lexer):
         IF, ELSE, WHILE,
         VOID_TYPE, FLOAT_TYPE, INT_TYPE, BOOL_TYPE, STRING_TYPE,
         FLOAT, INT, STRING,
-        TRUE, FALSE,
+        TRUE, FALSE, NULL,
         PLUS, TIMES, MINUS, DIVIDE, MODULO, 
         INCREM, DECREM, ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN,
         NEQ, EQ, GT, LT, GTE, LTE,
@@ -23,6 +23,7 @@ class KLexer(Lexer):
     ID['import'] = IMPORT
     ID['print'] = PRINT  # me waiting for a way better way to do this
     ID['void'] = VOID_TYPE
+    ID['null'] = NULL
     # ID['ref'] = REFERENCE # Scrapped for now
     ID['if'] = IF
     ID['else'] = ELSE

@@ -1,46 +1,7 @@
 import re
 from typing import TypedDict
 from dataclasses import dataclass, field
-opcodes = [
-    'DEFINE',  # Defines function
-    # 'END',    # Ends function parsing
-    'SET_GLOBAL',  # Sets global variable
-    'GET_GLOBAL',
-    'SET_LOCAL',
-    'GET_LOCAL',
-    'PUSH_VALUE',
-    'PUSH_STRING',
-    'STRING_LEN',
-    'STRING_CONCAT',
-    'STRING_SUB',
-    'POP',
-    'POLL',
-    'DUP',
-    'DUP_BTM',
-    'ADD',
-    'SUB',
-    'MUL',
-    'DIV',
-    'MOD',
-    'INC', # I accidentally made these useless but ig 'backwards compatiblity' or something
-    'DEC',
-    'RETURN',
-    'COMPARE_EQ',
-    'COMPARE_NEQ',
-    'COMPARE_LT',
-    'COMPARE_GT',
-    'COMPARE_LTE',
-    'COMPARE_GTE',
-    'JUMP',
-    'JUMP_IF_FALSE',
-    'JUMP_IF_TRUE',
-    'PRINT',
-    'ARRAY_NEW',
-    'ARRAY_ADD',
-    'ARRAY_INDEX',
-    'CALL',
-    'CALL_EXTERNAL',
-]
+from shared import *
 
 @dataclass
 class Function:
@@ -51,12 +12,20 @@ class Function:
     code: list[str] = field(default_factory=list)
     pc: int = 0
 
+@dataclass
+class PredefinedFunction(Function):
+    func: callable = None
+
 class Interpreter:
     def __init__(self):
         self.functions: TypedDict[str, Function] = {}
         self.globals = {}
+        for name, func in predefined_functions.items():
+            self.functions[name] = PredefinedFunction(name, predefined_functions_to_argc[name], func=func)
 
     def execute_func(self, func: Function, *args):
+        if func.name in predefined_functions:
+            return predefined_functions[func.name](*args)
         for i in range(func.arg_count):
             func.locals.append(args[i])
         while func.pc < len(func.code):
@@ -74,18 +43,18 @@ class Interpreter:
                             f"No string in PUSH_STRING: '{instruction}'")
                     value = matched
                     func.stack.append(value[1:-1])
-                elif instruction.startswith("STRING_LEN"):
-                    a = func.stack.pop()
-                    func.stack.append(len(a))
-                elif instruction.startswith("STRING_CONCAT"):
-                    a = func.stack.pop()
-                    b = func.stack.pop()
-                    func.stack.append(f"{b}{a}")
-                elif instruction.startswith("STRING_SUB"):
-                    value_a = int(instruction.split()[1])
-                    value_b = int(instruction.split()[2])
-                    a = func.stack.pop()
-                    func.stack.append(a[value_a:value_b])
+                # elif instruction.startswith("STRING_LEN"):
+                #     a = func.stack.pop()
+                #     func.stack.append(len(a))
+                # elif instruction.startswith("STRING_CONCAT"):
+                #     a = func.stack.pop()
+                #     b = func.stack.pop()
+                #     func.stack.append(f"{b}{a}")
+                # elif instruction.startswith("STRING_SUB"):
+                #     value_a = int(instruction.split()[1])
+                #     value_b = int(instruction.split()[2])
+                #     a = func.stack.pop()
+                #     func.stack.append(a[value_a:value_b])
                 elif instruction.strip() == 'ADD':
                     a = func.stack.pop()
                     b = func.stack.pop()
@@ -190,19 +159,19 @@ class Interpreter:
                 elif instruction.strip() == 'ARRAY_INDEX':
                     index = int(instruction.split()[1])
                     func.stack.append(func.stack[-1][index])
-                elif instruction.startswith('CALL_EXTERNAL'):
-                    split = instruction.split()
-                    _module = split[1]
-                    _func = split[2]
-                    arg_count = int(split[3])
-                    module = __import__(_module)
-                    function = getattr(module, _func)
-                    args = []
-                    for a in range(arg_count):
-                        args.append(func.stack.pop())
-                    result = function(*args)
-                    if result is not None:
-                        func.stack.append(result)
+                # elif instruction.startswith('CALL_EXTERNAL'):
+                #     split = instruction.split()
+                #     _module = split[1]
+                #     _func = split[2]
+                #     arg_count = int(split[3])
+                #     module = __import__(_module)
+                #     function = getattr(module, _func)
+                #     args = []
+                #     for a in range(arg_count):
+                #         args.append(func.stack.pop())
+                #     result = function(*args)
+                #     if result is not None:
+                #         func.stack.append(result)
                 elif instruction.startswith('SET_GLOBAL'):
                     split = instruction.split()
                     name = split[1]
@@ -273,6 +242,8 @@ class Interpreter:
         exc = self.execute_func(self.functions['main'])
         if exc is not None and isinstance(exc, Exception):
             raise exc
+        elif exc is not None:
+            print("Program returned: " + exc)
 
 def main(kasm):
     interpreter = Interpreter()
