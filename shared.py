@@ -19,7 +19,7 @@ opcodes = [
     'MUL',
     'DIV',
     'MOD',
-    'INC', # I accidentally made these useless but ig 'backwards compatiblity' or something
+    'INC',  # I accidentally made these useless but ig 'backwards compatiblity' or something
     'DEC',
     'RETURN',
     'COMPARE_EQ',
@@ -39,11 +39,14 @@ opcodes = [
     # 'CALL_EXTERNAL', Scrapped for predefined functions
 ]
 
+
 def substring(string, start, end):
     return string[start:end]
 
+
 def println(*args):
     print(*args)
+
 
 predefined_functions = {
     'input': input,
@@ -57,4 +60,15 @@ predefined_functions_to_argc = {
     'length': 1,
     'substring': 3,
     'print': -1,
+}
+
+types = {
+    'int': int,
+    'float': float,
+    'string': str,
+    'bool': bool,
+    'string[]': list[str],
+    'int[]': list[int],
+    'float[]': list[float],
+    'bool[]': list[bool],
 }

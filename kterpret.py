@@ -181,8 +181,12 @@ class Interpreter:
                     split = instruction.split()
                     index = int(split[1])
                     value = func.stack.pop()
+                    
                     if index <= len(func.locals):
                         func.locals.append(value)
+                    if not isinstance(value, type(func.locals[index])):
+                        raise Exception(f"Cannot assign {type(value)} to {type(func.locals[index])}")
+                    print(isinstance(value, type(func.locals[index])))
                     func.locals[index] = value
                 elif instruction.startswith('GET_LOCAL'):
                     split = instruction.split()
@@ -204,7 +208,7 @@ class Interpreter:
                     return Exception(f'Unknown instruction {instruction.split()[0]}: "{instruction}"')
                 
             except Exception as e:
-                print(f'{e} when parsed line: {instruction}')
+                print(f'{e} when running: {instruction}')
                 return e
 
     def parse(self, code):

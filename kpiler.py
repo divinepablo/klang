@@ -2,7 +2,7 @@ from typing import Dict
 from kparser import KParser
 from klexer import KLexer
 from dataclasses import dataclass, field
-from shared import predefined_functions_to_argc
+from shared import predefined_functions_to_argc, types
 def hid(t):
     if isinstance(t, tuple):
         return "\n".join([hid(x) for x in t])
@@ -22,16 +22,6 @@ class FunctionDefinition:
 class KPiler:
     def __init__(self) -> None:
         self.func_to_argc = dict(predefined_functions_to_argc)
-        self.types = {
-            'int': int,
-            'float': float,
-            'string': str,
-            'bool': bool,
-            'string[]': list[str],
-            'int[]': list[int],
-            'float[]': list[float],
-            'bool[]': list[bool],
-        }
 
     def compile_function(self, func):
         output = []
@@ -82,7 +72,7 @@ class KPiler:
                 result.extend(self.compile_instruction(func, inst[3]))
                 index = len(func.local_variables)
                 func.local_variables[inst[2]] = index
-                func.local_variable_to_type[inst[2]] = self.types[inst[1]]
+                func.local_variable_to_type[inst[2]] = types[inst[1]]
                 result.append(f'SET_LOCAL {index}')
             elif opcode == 'ASSIGN':
                 result.extend(self.compile_instruction(func, inst[2]))
@@ -185,9 +175,6 @@ class KPiler:
         lexer = KLexer()
         parser = KParser()
         parsed = parser.parse(lexer.tokenize(src))
-        with open(f'{src.encode().hex()[:8]}.kmasm' ,'w') as f:
-            for p in parsed:
-                f.write(f'{hid(p)}\n')
         output = []
         
         

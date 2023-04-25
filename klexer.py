@@ -4,7 +4,6 @@ from sly import Lexer, Parser
 class KLexer(Lexer):
     tokens = {
         ID, IMPORT,
-        PRINT,
         IF, ELSE, WHILE,
         VOID_TYPE, FLOAT_TYPE, INT_TYPE, BOOL_TYPE, STRING_TYPE,
         FLOAT, INT, STRING,
