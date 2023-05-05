@@ -1,3 +1,5 @@
+from llvmlite import ir
+int32 = ir.IntType(32)
 opcodes = [
     'DEFINE',  # Defines function
     # 'END',    # Ends function parsing
@@ -63,12 +65,12 @@ predefined_functions_to_argc = {
 }
 
 types = {
-    'int': int,
+    'int': int32,
     'float': float,
     'string': str,
     'bool': bool,
     'string[]': list[str],
-    'int[]': list[int],
+    'int[]': list[int32],
     'float[]': list[float],
     'bool[]': list[bool],
 }
