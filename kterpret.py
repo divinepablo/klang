@@ -186,7 +186,7 @@ class Interpreter:
                         func.locals.append(value)
                     if not isinstance(value, type(func.locals[index])):
                         raise Exception(f"Cannot assign {type(value)} to {type(func.locals[index])}")
-                    print(isinstance(value, type(func.locals[index])))
+                    # print(isinstance(value, type(func.locals[index])))
                     func.locals[index] = value
                 elif instruction.startswith('GET_LOCAL'):
                     split = instruction.split()

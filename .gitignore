@@ -1,3 +1,4 @@
 *.pyc
 *.kasm
 *.kmasm
+parser.out

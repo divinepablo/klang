@@ -4,7 +4,7 @@ from sly import Lexer, Parser
 class KLexer(Lexer):
     tokens = {
         ID, IMPORT,
-        IF, ELSE, WHILE,
+        IF, ELSE, WHILE, RETURN,
         VOID_TYPE, FLOAT_TYPE, INT_TYPE, BOOL_TYPE, STRING_TYPE,
         FLOAT, INT, STRING,
         TRUE, FALSE, NULL,
@@ -32,6 +32,7 @@ class KLexer(Lexer):
     ID['bool'] = BOOL_TYPE
     ID['true'] = TRUE
     ID['false'] = FALSE
+    ID['return'] = RETURN
 
     literals = {'=', '+', '-', '/', '*',
                 '(', ')', ',', '{', '}',

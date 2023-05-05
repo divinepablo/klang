@@ -192,3 +192,8 @@ def main(source: str):
     print('Compiled successfully')
     return compiled
 
+if __name__ == '__main__':
+    src = input("Source file: ")
+    with open(src, 'r') as f:
+        with open(src + '.kasm', 'w') as f2:
+            f2.write(main(f.read()))
