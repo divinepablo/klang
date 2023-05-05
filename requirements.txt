@@ -1,2 +1,2 @@
 sly==0.5
-llvm-lite
+llvmlite

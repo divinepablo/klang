@@ -3,3 +3,6 @@
 *.kmasm
 parser.out
 test/
+*.s
+*.ll
+*.o

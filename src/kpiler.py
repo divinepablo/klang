@@ -128,5 +128,5 @@ def main(source: str):
 if __name__ == '__main__':
     src = input("Source file: ")
     with open(src, 'r') as f:
-        with open(src + '.kasm', 'w') as f2:
+        with open(src + '.ll', 'w') as f2:
             f2.write(main(f.read()))
