@@ -55,8 +55,8 @@ class KPiler:
 
         for inst in block:
             self.compile_instruction(func_def, inst, builder)
-
-        builder.ret_void()
+        
+        builder.ret(0)
 
     def compile_instruction(self, func: FunctionDefinition, inst, builder: ir.IRBuilder):
         int32 = ir.IntType(32)
