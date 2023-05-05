@@ -2,3 +2,4 @@
 *.kasm
 *.kmasm
 parser.out
+test/
