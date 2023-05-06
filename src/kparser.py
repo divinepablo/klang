@@ -35,10 +35,6 @@ class KParser(Parser):
         return []
 
     @_('empty')
-    def arg_list(self, p):
-        return []
-
-    @_('empty')
     def statements(self, p):
         return []
 
@@ -57,6 +53,7 @@ class KParser(Parser):
     @_('statement')
     def program(self, p):
         return p.expression
+
     @_('type')
     def program(self, p):
         return p.type
@@ -117,28 +114,10 @@ class KParser(Parser):
     def statement(self, p):
         return p.statement
 
-    # @_('expression SEP')
-    # def statement(self, p):
-    #     return p.expression
-
-    
-
     @_('expression SEP', 'declaration SEP', 'assignment SEP', 'import_statement SEP',
-       'return_statement SEP', 'function_define', 'if_statement', 'while_loop_statement')
+       'return_statement', 'function_define', 'if_statement', 'while_loop_statement')
     def statement(self, p):
         return p[0]
-
-    @_("declaration")
-    def statement(self, p):
-        return p.declaration
-
-    @_("import_statement")
-    def statement(self, p):
-        return p.import_statement
-
-    @_("assignment")
-    def statement(self, p):
-        return p.assignment
 
     @_('IMPORT STRING')
     def import_statement(self, p):
@@ -256,21 +235,18 @@ class KParser(Parser):
     def farg_list(self, p):
         p.farg_list.append(p.expression)
         return p.farg_list
-        
 
-    @_('RETURN')
-    def return_statement(self, p):
-        return ('RETURN')
-
-    @_('RETURN expression')
+    @_('RETURN expression SEP')
     def return_statement(self, p):
         return ('RETURN', p.expression)
+
+    @_('RETURN SEP')
+    def return_statement(self, p):
+        return ('RETURN', 'void')
 
     @_('function_call')
     def expression(self, p):
         return p.function_call
-
-
 
     @_('type ID LPAREN farg_list RPAREN "{" statements "}"')
     def function_define(self, p):

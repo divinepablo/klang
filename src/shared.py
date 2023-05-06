@@ -76,6 +76,12 @@ llvm_types = {
     'float': ir.FloatType(),
     'char': ir.IntType(8),
     'bool': ir.IntType(1),
+    
+    'int*': ir.IntType(32).as_pointer(),
+    'float*': ir.FloatType().as_pointer(),
+    'char*': ir.IntType(8).as_pointer(),
+    'bool*': ir.IntType(1).as_pointer(),
+
     'void': ir.VoidType()
     # 'string[]': list[str],
     # 'int[]': list[int],

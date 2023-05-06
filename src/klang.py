@@ -1,25 +1,24 @@
 import sys, kpiler, kterpret, argparse, klinker, kpilerllvm
 parser = argparse.ArgumentParser(prog='klang', description='Basic operations for the k language')
-parser.add_argument('filename')
+parser.add_argument('files', metavar='file', nargs='+', help='input file(s)')
 parser.add_argument('-c', '--compile', action='store_true', required=False)
 parser.add_argument('-l', '--link', action='store_true', required=False)
 parser.add_argument('-r', '--run', action='store_true', required=False)
 parser.add_argument('-o', '--output', default=None, required=False, action='store')
 args = parser.parse_args()
-print(args)
+
 if args.compile and args.link:
     out_file = args.output
     if args.output is None:
-        out_file = args.filename[:-2] + '.ll'
-    with open(args.filename, 'r') as f:
-        output = kpilerllvm.main(f.read())
-        with open(out_file, 'w') as f:
-            print(f'Outputting to {out_file}')
-            f.write(output)
+        raise Exception('need output')
+    output = kpilerllvm.main(*args.files)
+    with open(out_file, 'w') as f:
+        print(f'Outputting to {out_file}')
+        f.write(output)
 elif args.compile:
     out_file = args.output
     if args.output is None:
-        out_file = args.filename[:-2] + '.kasm'
+        out_file = args.files[0][:-2] + '.kasm'
     with open(args.filename, 'r') as f:
         output = kpiler.main(f.read())
         with open(out_file, 'w') as f:
