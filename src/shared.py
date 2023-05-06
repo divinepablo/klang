@@ -1,5 +1,5 @@
 from llvmlite import ir
-int32 = ir.IntType(32)
+# int32 = 
 opcodes = [
     'DEFINE',  # Defines function
     # 'END',    # Ends function parsing
@@ -50,27 +50,35 @@ def println(*args):
     print(*args)
 
 
+
 predefined_functions = {
-    'input': input,
-    'length': len,
-    'substring': substring,
-    'print': println,
+    # 'input': input,
+    # 'length': len,
+    # 'substring': lambda string, start, end: string[start:end],
+    # 'print': print,
 }
 
-predefined_functions_to_argc = {
-    'input': 1,
-    'length': 1,
-    'substring': 3,
-    'print': -1,
-}
+predefined_functions_to_argc = {}#{k: -1 if v == print else v.__code__.co_argcount for k, v in predefined_functions.items()}
 
 types = {
-    'int': int32,
+    'int': int,
     'float': float,
     'string': str,
     'bool': bool,
     'string[]': list[str],
-    'int[]': list[int32],
+    'int[]': list[int],
     'float[]': list[float],
     'bool[]': list[bool],
+}
+
+llvm_types = {
+    'int': ir.IntType(32),
+    'float': ir.FloatType(),
+    'char': ir.IntType(8),
+    'bool': ir.IntType(1),
+    'void': ir.VoidType()
+    # 'string[]': list[str],
+    # 'int[]': list[int],
+    # 'float[]': list[float],
+    # 'bool[]': list[bool],
 }

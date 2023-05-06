@@ -6,3 +6,4 @@ test/
 *.s
 *.ll
 *.o
+test
