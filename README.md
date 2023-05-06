@@ -1,19 +1,18 @@
 # klang
-worlds best new interpretted language
+worlds best new compiled language
 
 ## why?
 i was bored one day
 
 ## why python?
-mainly because of the usage of SLY and not knowing enough C++ libraries that could achieve similar
+mainly because of the usage of SLY and instead of recoding the whole language in C++ with LLVM im just going to use llvmlite
 
 ### TODO:
-* [x] ~~Finish bytecode~~
 * [ ] Finish compiler
-  * [x] ~~Add loops~~ (only conditional while loops)
-  * [x] ~~Add `+=, -=. *=. /=, ++, --` Operators~~
+  * [ ] Add loops (only conditional while loops)
+  * [ ] Add `+=, -=. *=. /=, ++, --` Operators
   * [ ] Add arrays
-  * [x] ~~Add if statements~~
-  * ~~[ ] Add `CALL_EXTERNAL` support~~ (feature scrapped)
+  * [ ] Add if statements
   * [ ] Add macros
-  * [x] ~~Add actual type checking~~
+  * [ ] Finish imports (function calls are broken)
+  * [ ] Reimplement most of old language features from original
