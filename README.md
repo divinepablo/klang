@@ -10,6 +10,7 @@ mainly because of the usage of SLY and instead of recoding the whole language in
 ### TODO:
 * [ ] Finish compiler
   * [ ] Add loops (only conditional while loops)
+  * [ ] Add `+, -. *. /` Operators
   * [ ] Add `+=, -=. *=. /=, ++, --` Operators
   * [ ] Add arrays
   * [ ] Add if statements

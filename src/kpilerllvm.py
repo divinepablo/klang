@@ -84,7 +84,8 @@ class KPiler:
                     alloca = builder.alloca(var_type, name=inst[2])
                     func.local_variables[inst[2]] = alloca
                     builder.store(value, alloca)
-            
+            elif opcode == 'IF':
+                pass
             elif opcode == 'CALL':
                 args = []
                 for arg in inst[2]:
