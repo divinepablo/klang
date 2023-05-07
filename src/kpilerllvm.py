@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Union
 from kparser import KParser
 from klexer import KLexer
 from dataclasses import dataclass, field
@@ -19,19 +19,17 @@ def hid(t):
 class FunctionDefinition:
     name: str
     llvm_function: ir.Function = None
-    local_variables: Dict[str, ir.Value] = field(default_factory=dict)
+    local_variables: Dict[str, Union[int, ir.Value]] = field(default_factory=dict)
 
 class KPiler:
     def __init__(self) -> None:
         self.create_module()
         self.llvm_functions: dict[str, ir.Function] = {}
-        self.llvm_functions2: dict[str, ir.Function] = {}
         self.stringc = 0
 
     def create_module(self, hello: int = 0):
         self.module = ir.Module(name=f"kmodule={int}")
         self.module.triple = "x86_64-pc-linux-gnu"
-        self.llvm_functions2 = {}
         # for name, argc in predefined_functions_to_argc.items():
         #     func_type = ir.FunctionType(llvm_types['int'], [ir.IntType(32)] * argc)
         #     func = ir.Function(self.module, func_type, name=name)
@@ -47,7 +45,6 @@ class KPiler:
         func_type = ir.FunctionType(llvm_types[ftype], farg_types)
         llvm_func = ir.Function(self.module, func_type, name=name)
         self.llvm_functions[name] = llvm_func
-        self.llvm_functions2[name] = llvm_func
         entry_block = llvm_func.append_basic_block("entry")
         builder = ir.IRBuilder(entry_block)
 
@@ -68,6 +65,9 @@ class KPiler:
             opcode = inst[0]
             if opcode == 'var':
                 var_value = func.local_variables[inst[1]]
+                if isinstance(var_value, int):
+                    print('arg_index:', var_value)
+                    return func.llvm_function.args[var_value]
                 return builder.load(var_value)
 
             elif opcode == 'DECLARE':
@@ -84,14 +84,42 @@ class KPiler:
                     alloca = builder.alloca(var_type, name=inst[2])
                     func.local_variables[inst[2]] = alloca
                     builder.store(value, alloca)
+            elif opcode == 'GT':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.icmp_signed('>', expression1, expression2)
+            elif opcode == 'LT':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.icmp_signed('<', expression1, expression2)
+            elif opcode == 'GTE':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.icmp_signed('>=', expression1, expression2)
+            elif opcode == 'LTE':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.icmp_signed('<=', expression1, expression2)
+            elif opcode == 'EQ':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.icmp_signed('==', expression1, expression2)
+            elif opcode == 'NEQ':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.icmp_signed('!=', expression1, expression2)
             elif opcode == 'IF':
-                pass
+                if_cond = self.compile_instruction(func, inst[1], builder)
+                with builder.if_then(if_cond):# as bbend:
+                    builder2 = builder#ir.IRBuilder(block=bbend)
+                    for inst2 in inst[2][1]:
+                        self.compile_instruction(func, inst2, builder2)
             elif opcode == 'CALL':
                 args = []
                 for arg in inst[2]:
                     args.append(self.compile_instruction(func, arg, builder))
-                print(f'Calling {self.llvm_functions2[inst[1]].name}')
-                builder.call(self.llvm_functions2[inst[1]], args)
+                # print(f'Calling {self.llvm_functions2[inst[1]].name}')
+                builder.call(self.llvm_functions[inst[1]], args)
             elif opcode == 'ASSIGN':
                 value = self.compile_instruction(func, inst[2], builder)
                 index = func.local_variables[inst[1]]
@@ -132,15 +160,15 @@ class KPiler:
     def compile_code(self, src: str, module: ir.Module = None):
         if module is not None:
             self.module = module
-        for func_name, func in self.llvm_functions.items():
-            self.llvm_functions2[func_name] = ir.Function(self.module, func.ftype, func_name)
-            self.llvm_functions2[func_name].linkage = 'external'
+        # for func_name, func in self.llvm_functions.items():
+            # self.llvm_functions2[func_name] = ir.Function(self.module, func.ftype, func_name)
+            # self.llvm_functions2[func_name].linkage = 'external'
         
         if not 'printf' in self.llvm_functions:
             func_type = ir.FunctionType(llvm_types['int'], [ir.IntType(8).as_pointer()], True)
             llvm_func = ir.Function(self.module, func_type, name='printf')
             self.llvm_functions['printf'] = llvm_func
-            self.llvm_functions2['printf'] = llvm_func
+            # self.llvm_functions2['printf'] = llvm_func
             
         lexer = KLexer()
         parser = KParser()
