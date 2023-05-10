@@ -1,7 +1,7 @@
 from sly import Lexer, Parser
 
 
-class KLexer(Lexer):
+class KLexer(Lexer): # this WILL error due to how SLY works (shit is beyond reflections)
     tokens = {
         ID, IMPORT,
         IF, ELSE, WHILE, RETURN,
