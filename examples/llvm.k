@@ -1,11 +1,4 @@
-void fib() {
-    int hi = 5;
-    printf("%d\n", hi);
-    return;
-}
-
 int main() {
-    fib(5);
-    print("%d\n", hi);
+    printf("%d\n", 5);
     return 0;
 }

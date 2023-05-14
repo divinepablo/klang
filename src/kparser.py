@@ -248,6 +248,10 @@ class KParser(Parser):
     def expression(self, p):
         return p.function_call
 
+    @_('ID LPAREN expressions RPAREN')
+    def function_call(self, p):
+        return ("CALL", p.ID, p.expressions)
+
     @_('type ID LPAREN farg_list RPAREN "{" statements "}"')
     def function_define(self, p):
         return ("DECLARE_FUNC", p.ID, p.type, ('args', p.farg_list), ('block', p.statements))
@@ -268,6 +272,6 @@ class KParser(Parser):
     def if_statement(self, p):
         return ("ELIF", p.expression0, p.expression1, ('block', p.statements1))
 
-    @_('ID LPAREN expressions RPAREN')
-    def function_call(self, p):
-        return ("CALL", p.ID, p.expressions)
+    # @_('ID LPAREN expressions RPAREN')
+    # def function_call(self, p):
+    #     return ("CALL", p.ID, p.expressions)
