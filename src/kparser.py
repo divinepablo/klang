@@ -161,6 +161,7 @@ class KParser(Parser):
 
     @_('type ID ASSIGN expression SEP')
     def declaration(self, p):
+        print()
         return ("DECLARE", p.type, p.ID, p.expression)
 
     @_('ID ASSIGN expression')
@@ -267,6 +268,14 @@ class KParser(Parser):
     @_('IF LPAREN expression RPAREN "{" statements "}" ELSE IF LPAREN expression RPAREN "{" statements "}"')
     def if_statement(self, p):
         return ("ELIF", p.expression0, p.expression1, ('block', p.statements1))
+
+    # @_('ID LPAREN RPAREN')
+    # def function_call(self, p):
+    #     return ("CALL", p.ID, [])
+
+    # @_('ID LPAREN expression RPAREN')
+    # def function_call(self, p):
+    #     return ("CALL", p.ID, p.expression)
 
     @_('ID LPAREN expressions RPAREN')
     def function_call(self, p):

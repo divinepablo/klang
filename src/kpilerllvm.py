@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from shared import predefined_functions_to_argc, llvm_types
 from llvmlite import ir
 from llvmlite import binding as llvm
-import os, subprocess, llvmlite
+import os, subprocess, llvmlite, colorama
 
 def hid(t):
     if isinstance(t, tuple):
@@ -197,14 +197,14 @@ class KPiler:
                 print(f'\rSaving {file} ({hi}/{len(_files)})', end='', flush=True)
                 compiled = str(hi2)
 
-                with open('build/' + file.replace('/', '.') + '.ll', 'w') as f:
+                with open('build/' + file.replace('/', '.') + '.ll', 'w', encoding='utf-8') as f:
                     f.write(compiled)
             
-            print(f'\rCompiled {file} ({hi}/{len(_files)})')
-        subprocess.run(['llvm-link', *['build/' + file.replace('/', '.') + '.ll' for file in _files], '-o', 'build/output.ll.bc'])
-        subprocess.run(['llvm-dis', 'build/output.ll.bc', '-o', 'build/output.ll'])
+            print(f'\r{colorama.Fore.LIGHTGREEN_EX}Compiled {file} ({hi}/{len(_files)}) {colorama.Fore.RESET}')
+        subprocess.run(['llvm-link', *['build/' + file.replace('/', '.') + '.ll' for file in _files], '-o', 'build/output.ll.bc'], check=True)
+        subprocess.run(['llvm-dis', 'build/output.ll.bc', '-o', 'build/output.ll'], check=True)
 
-        with open('build/output.ll', 'r') as f:
+        with open('build/output.ll', 'r', encoding='utf-8') as f:
             contents = f.read()
         # for f in os.listdir('build'):
         #     os.remove('build/' + f)
