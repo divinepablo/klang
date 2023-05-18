@@ -134,7 +134,6 @@ class KPiler:
                 args = []
                 for arg in inst[2]:
                     args.append(self.compile_instruction(func, arg, builder))
-                # print(f'Calling {self.llvm_functions2[inst[1]].name}')
                 builder.call(self.llvm_functions[inst[1]], args)
             elif opcode == 'ASSIGN':
                 value = self.compile_instruction(func, inst[2], builder)

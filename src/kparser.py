@@ -199,26 +199,6 @@ class KParser(Parser):
     def expression(self, p):
         return (p._slice[1].type, p.expression0, p.expression1)
 
-    # @_('expression NEQ expression')
-    # def expression(self, p):
-    #     return ('NEQ', p.expression0, p.expression1)
-
-    # @_('expression GT expression')
-    # def expression(self, p):
-    #     return ('GT', p.expression0, p.expression1)
-
-    # @_('expression LT expression')
-    # def expression(self, p):
-    #     return ('LT', p.expression0, p.expression1)
-
-    # @_('expression GTE expression')
-    # def expression(self, p):
-    #     return ('GTE', p.expression0, p.expression1)
-
-    # @_('expression LTE expression')
-    # def expression(self, p):
-    #     return ('LTE', p.expression0, p.expression1)
-
     @_('LBRACKET expressions RBRACKET')
     def expression(self, p):
         return [p.expressions]
