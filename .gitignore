@@ -8,3 +8,4 @@ test/
 *.o
 test
 build/
+ignored/

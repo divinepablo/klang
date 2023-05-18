@@ -161,6 +161,7 @@ class KParser(Parser):
 
     @_('type ID ASSIGN expression')
     def declaration(self, p):
+        print()
         return ("DECLARE", p.type, p.ID, p.expression)
 
     @_('ID ASSIGN expression')
