@@ -1,6 +1,5 @@
 """k language main file"""
 import argparse
-import kpiler
 import kterpret
 import klinker
 import kpilerllvm
@@ -12,7 +11,7 @@ parser.add_argument('-r', '--run', action='store_true', required=False)
 parser.add_argument('-o', '--output', default=None, required=False, action='store')
 args = parser.parse_args()
 
-if args.compile and args.link:
+if args.compile:
     out_file = args.output
     if args.output is None:
         raise ValueError('need output')
@@ -20,15 +19,6 @@ if args.compile and args.link:
     with open(out_file, 'w', encoding='utf-8') as f:
         print(f'Outputting to {out_file}')
         f.write(OUTPUT)
-elif args.compile:
-    out_file = args.output
-    if args.output is None:
-        out_file = args.files[0][:-2] + '.kasm'
-    with open(args.filename, 'r', encoding='utf-8') as f:
-        OUTPUT = kpiler.main(f.read())
-        with open(out_file, 'w', encoding='utf-8') as f:
-            print(f'Outputting to {out_file}')
-            f.write(OUTPUT)
 elif args.run:
     with open(args.filename, 'r', encoding='utf-8') as f:
         kterpret.main(f.read())

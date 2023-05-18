@@ -2,7 +2,7 @@ from typing import Dict, Union
 from kparser import KParser
 from klexer import KLexer
 from dataclasses import dataclass, field
-from shared import predefined_functions_to_argc, llvm_types
+from shared import llvm_types
 from llvmlite import ir
 from llvmlite import binding as llvm
 import os, subprocess, llvmlite, colorama
@@ -30,10 +30,6 @@ class KPiler:
     def create_module(self, hello: int = 0):
         self.module = ir.Module(name=f"kmodule={int}")
         self.module.triple = "x86_64-pc-linux-gnu"
-        # for name, argc in predefined_functions_to_argc.items():
-        #     func_type = ir.FunctionType(llvm_types['int'], [ir.IntType(32)] * argc)
-        #     func = ir.Function(self.module, func_type, name=name)
-        #     self.llvm_functions[name] = func
 
     def compile_function(self, func):
         name = func[1]
@@ -96,6 +92,26 @@ class KPiler:
                 expression1 = self.compile_instruction(func, inst[1], builder)
                 expression2 = self.compile_instruction(func, inst[2], builder)
                 return builder.icmp_signed('>=', expression1, expression2)
+            elif opcode == 'ADD':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.add(expression1, expression2)
+            elif opcode == 'SUB':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.sub(expression1, expression2)
+            elif opcode == 'MUL':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.mul(expression1, expression2)
+            elif opcode == 'DIV':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.sdiv(expression1, expression2)
+            elif opcode == 'MOD':
+                expression1 = self.compile_instruction(func, inst[1], builder)
+                expression2 = self.compile_instruction(func, inst[2], builder)
+                return builder.srem(expression1, expression2)
             elif opcode == 'LTE':
                 expression1 = self.compile_instruction(func, inst[1], builder)
                 expression2 = self.compile_instruction(func, inst[2], builder)
@@ -130,6 +146,24 @@ class KPiler:
                     builder.ret(value)
                 else:
                     builder.ret_void()
+            elif opcode == 'WHILE':
+                cond_block = func.llvm_function.append_basic_block('while.cond')
+                loop_block = func.llvm_function.append_basic_block('while.loop')
+                end_block = func.llvm_function.append_basic_block('while.end')
+                
+                builder.branch(cond_block)
+                
+                builder.position_at_end(cond_block)
+                while_cond = self.compile_instruction(func, inst[1], builder)
+                builder.cbranch(while_cond, loop_block, end_block)
+                
+                builder.position_at_end(loop_block)
+                for inst2 in inst[2][1]:
+                    self.compile_instruction(func, inst2, builder)
+                builder.branch(cond_block)
+                
+                builder.position_at_end(end_block)
+
 
 
 
