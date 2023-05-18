@@ -159,7 +159,7 @@ class KParser(Parser):
     def type(self, p):
         return 'void'
 
-    @_('type ID ASSIGN expression SEP')
+    @_('type ID ASSIGN expression')
     def declaration(self, p):
         return ("DECLARE", p.type, p.ID, p.expression)
 
@@ -195,29 +195,29 @@ class KParser(Parser):
     def assignment(self, p):
         return ("ASSIGN", p.ID, ('SUB', ('var', p.ID), 1))
 
-    @_('expression EQ expression')
+    @_('expression EQ expression', 'expression NEQ expression', 'expression GT expression', 'expression LT expression', 'expression GTE expression', 'expression LTE expression')
     def expression(self, p):
-        return ('EQ', p.expression0, p.expression1)
+        return (p._slice[1].type, p.expression0, p.expression1)
 
-    @_('expression NEQ expression')
-    def expression(self, p):
-        return ('NEQ', p.expression0, p.expression1)
+    # @_('expression NEQ expression')
+    # def expression(self, p):
+    #     return ('NEQ', p.expression0, p.expression1)
 
-    @_('expression GT expression')
-    def expression(self, p):
-        return ('GT', p.expression0, p.expression1)
+    # @_('expression GT expression')
+    # def expression(self, p):
+    #     return ('GT', p.expression0, p.expression1)
 
-    @_('expression LT expression')
-    def expression(self, p):
-        return ('LT', p.expression0, p.expression1)
+    # @_('expression LT expression')
+    # def expression(self, p):
+    #     return ('LT', p.expression0, p.expression1)
 
-    @_('expression GTE expression')
-    def expression(self, p):
-        return ('GTE', p.expression0, p.expression1)
+    # @_('expression GTE expression')
+    # def expression(self, p):
+    #     return ('GTE', p.expression0, p.expression1)
 
-    @_('expression LTE expression')
-    def expression(self, p):
-        return ('LTE', p.expression0, p.expression1)
+    # @_('expression LTE expression')
+    # def expression(self, p):
+    #     return ('LTE', p.expression0, p.expression1)
 
     @_('LBRACKET expressions RBRACKET')
     def expression(self, p):
