@@ -1,11 +1,13 @@
+from dataclasses import dataclass, field
+import os, subprocess, llvmlite, colorama
 from typing import Dict, Union
 from kparser import KParser
 from klexer import KLexer
-from dataclasses import dataclass, field
 from shared import llvm_types
 from llvmlite import ir
 from llvmlite import binding as llvm
-import os, subprocess, llvmlite, colorama
+
+
 
 def hid(t):
     if isinstance(t, tuple):
@@ -29,14 +31,13 @@ class KPiler:
 
     def create_module(self, hello: int = 0):
         self.module = ir.Module(name=f"kmodule={int}")
-        self.module.triple = "x86_64-pc-linux-gnu"
+        self.module.triple = llvm.get_default_triple()
 
     def compile_function(self, func):
         name = func[1]
         ftype = func[2]
         block = func[4][1]
         args = func[3][1]
-        arg_count = len(args)
         farg_types = [llvm_types[arg[0]] for arg in args]
         func_type = ir.FunctionType(llvm_types[ftype], farg_types)
         llvm_func = ir.Function(self.module, func_type, name=name)
@@ -51,10 +52,6 @@ class KPiler:
         for inst in block:
             self.compile_instruction(func_def, inst, builder)
         
-        # if ftype == 'int':
-        #     builder.ret(llvm_types['int'](0))
-        # elif ftype == 'void':
-        #     builder.ret_void()
 
     def compile_instruction(self, func: FunctionDefinition, inst, builder: ir.IRBuilder):
         if isinstance(inst, tuple):
