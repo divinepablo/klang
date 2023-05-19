@@ -9,11 +9,11 @@ mainly because of the usage of SLY and instead of recoding the whole language in
 
 ### TODO:
 * [ ] Finish compiler
-  * [ ] Add loops (only conditional while loops)
-  * [ ] Add `+, -. *. /` Operators
-  * [ ] Add `+=, -=. *=. /=, ++, --` Operators
+  * [x] Add loops (only conditional while loops)
+  * [x] Add `+, -. *. /` Operators
+  * [x] Add `+=, -=. *=. /=, ++, --` Operators
   * [ ] Add arrays
-  * [ ] Add if statements
+  * [x] Add if statements
   * [ ] Add macros
   * [ ] Finish imports (function calls are broken)
-  * [ ] Reimplement most of old language features from original
+  * [x] Reimplement most of old language features from original
