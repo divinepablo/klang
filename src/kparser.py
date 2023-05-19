@@ -235,18 +235,31 @@ class KParser(Parser):
     def declaration(self, p):
         return ("DECLARE_FUNC", p.ID, p.type, ('args', p.farg_list), ('block', p.statements))
 
-    @_('IF LPAREN expression RPAREN "{" statements "}"')
-    def if_statement(self, p):
-        return ("IF", p.expression, ('block', p.statements))
+    @_('type ID LPAREN farg_list RPAREN SEP')
+    def declaration(self, p):
+        return ("DECLARE_FUNC", p.ID, p.type, ('args', p.farg_list), ('block', None))
 
     @_('WHILE LPAREN expression RPAREN "{" statements "}"')
     def while_loop_statement(self, p):
         return ("WHILE", p.expression, ('block', p.statements))
 
-    @_('IF LPAREN expression RPAREN "{" statements "}" ELSE "{" statements "}"')
+    @_('IF LPAREN expression RPAREN "{" statements "}"')
     def if_statement(self, p):
-        return ("ELSE", ('if', p.expression, ('if_block', p.statements1)), ('block', p.statements1))
+        return ("IF", p.expression, ('block', p.statements))
 
-    @_('IF LPAREN expression RPAREN "{" statements "}" ELSE IF LPAREN expression RPAREN "{" statements "}"')
+    @_('IF LPAREN expression RPAREN "{" statements "}" else_statement')
     def if_statement(self, p):
-        return ("ELIF", p.expression0, p.expression1, ('block', p.statements1))
+        return ("IF", p.expression, ('block', p.statements), else_statement)
+
+    @_('ELSE "{" statements "}"')
+    def else_statement(self, p):
+        return ("ELSE", ('if', p.expression, ('block', p.statements1)))
+
+    @_('ELSE IF LPAREN expression RPAREN "{" statements "}"')
+    def else_statement(self, p):
+        return ("ELIF", p.expression, ('block', p.statements))
+
+    
+    @_('')  # no else or elif case
+    def else_statement(self, p):
+        return None
