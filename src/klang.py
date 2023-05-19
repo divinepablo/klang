@@ -1,7 +1,6 @@
 """k language main file"""
 import argparse
 import kterpret
-import klinker
 import kpilerllvm
 parser = argparse.ArgumentParser(prog='klang', description='Basic operations for the k language')
 parser.add_argument('files', metavar='file', nargs='+', help='input file(s)')
@@ -17,8 +16,9 @@ if args.compile:
         raise ValueError('need output')
     OUTPUT = kpilerllvm.main(*args.files, output=out_file, asm=args.llvm_asm)
 elif args.run:
-    with open(args.filename, 'r', encoding='utf-8') as f:
-        kterpret.main(f.read())
+    with open(args.files[0], 'r', encoding='utf-8') as f:
+        module = kpilerllvm.make_module(f.read())
+    kterpret.main(module)
 elif args.link:
     out_file = args.output
     if args.output is None:

@@ -8,14 +8,9 @@ int fibonacci(int index) {
 int rand();
 
 int main() {
-    printf("looping\n");
-    int hello = 0;
-    while (hello < 15) {
-        hello++;
-        printf("hello: %d\n", hello);
-    }
-    hello = fibonacci(15);
-    printf("%d\n", hello);
-    printf("%d\n", rand());
+    int hello = rand() % 10;
+    printf("hello: %d\n", hello);
+    hello = fibonacci(hello);
+    printf("hello: %d\n", hello);
     return 0;
 }

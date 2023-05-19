@@ -7,7 +7,8 @@ int fibonacci(int index) {
 
 
 void main() {
-    int hi = 50; # fib numbers
-    print(fibonacci(hi));
-    print("finish");
+    int hi = 6; # fib numbers
+    printf("fib: %d\n", fibonacci(hi));
+    printf("finish\n");
+    return;
 }

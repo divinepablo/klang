@@ -295,6 +295,9 @@ def main(*sources, output, asm=False):
         print(f'{colorama.Fore.RED}Compiled unsuccessfully{colorama.Fore.RESET}')
     return str(compiled)
 
+def make_module(source):
+    return KPiler().compile_code(source)
+
 
 if __name__ == '__main__':
     src = input("Source file: ")
