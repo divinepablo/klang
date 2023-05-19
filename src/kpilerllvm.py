@@ -135,7 +135,7 @@ class KPiler:
                     else_inst = inst[3]
                     else_opcode = else_inst[0]
                     if else_opcode == 'ELSE':
-                        with builder.if_else(if_cond):
+                        with builder.if_else(if_cond) as (then, otherwise):
                             with then:
                                 for inst2 in inst[2][1]:
                                     self.compile_instruction(func, inst2, builder)
