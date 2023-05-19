@@ -4,7 +4,6 @@ from sly import Parser
 
 class KParser(Parser):
     tokens = KLexer.tokens
-    debugfile = 'parser.out'
     precedence = (
         ('right', ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN),
         ('left', EQ, NEQ),
@@ -114,8 +113,8 @@ class KParser(Parser):
     def statement(self, p):
         return p.statement
 
-    @_('expression SEP', 'declaration SEP', 'assignment SEP', 'import_statement SEP',
-       'return_statement', 'function_define', 'if_statement', 'while_loop_statement')
+    @_('expression SEP', 'declaration', 'assignment SEP', 'import_statement SEP',
+       'return_statement', 'if_statement', 'while_loop_statement')
     def statement(self, p):
         return p[0]
 
@@ -159,9 +158,8 @@ class KParser(Parser):
     def type(self, p):
         return 'void'
 
-    @_('type ID ASSIGN expression')
+    @_('type ID ASSIGN expression SEP')
     def declaration(self, p):
-        print()
         return ("DECLARE", p.type, p.ID, p.expression)
 
     @_('ID ASSIGN expression')
@@ -200,26 +198,6 @@ class KParser(Parser):
     def expression(self, p):
         return (p._slice[1].type, p.expression0, p.expression1)
 
-    # @_('expression NEQ expression')
-    # def expression(self, p):
-    #     return ('NEQ', p.expression0, p.expression1)
-
-    # @_('expression GT expression')
-    # def expression(self, p):
-    #     return ('GT', p.expression0, p.expression1)
-
-    # @_('expression LT expression')
-    # def expression(self, p):
-    #     return ('LT', p.expression0, p.expression1)
-
-    # @_('expression GTE expression')
-    # def expression(self, p):
-    #     return ('GTE', p.expression0, p.expression1)
-
-    # @_('expression LTE expression')
-    # def expression(self, p):
-    #     return ('LTE', p.expression0, p.expression1)
-
     @_('LBRACKET expressions RBRACKET')
     def expression(self, p):
         return [p.expressions]
@@ -254,25 +232,34 @@ class KParser(Parser):
         return ("CALL", p.ID, p.expressions)
 
     @_('type ID LPAREN farg_list RPAREN "{" statements "}"')
-    def function_define(self, p):
+    def declaration(self, p):
         return ("DECLARE_FUNC", p.ID, p.type, ('args', p.farg_list), ('block', p.statements))
 
-    @_('IF LPAREN expression RPAREN "{" statements "}"')
-    def if_statement(self, p):
-        return ("IF", p.expression, ('block', p.statements))
+    @_('type ID LPAREN farg_list RPAREN SEP')
+    def declaration(self, p):
+        return ("DECLARE_FUNC", p.ID, p.type, ('args', p.farg_list), ('block', None))
 
     @_('WHILE LPAREN expression RPAREN "{" statements "}"')
     def while_loop_statement(self, p):
         return ("WHILE", p.expression, ('block', p.statements))
 
-    @_('IF LPAREN expression RPAREN "{" statements "}" ELSE "{" statements "}"')
+    @_('IF LPAREN expression RPAREN "{" statements "}"')
     def if_statement(self, p):
-        return ("ELSE", ('if', p.expression, ('if_block', p.statements1)), ('block', p.statements1))
+        return ("IF", p.expression, ('block', p.statements))
 
-    @_('IF LPAREN expression RPAREN "{" statements "}" ELSE IF LPAREN expression RPAREN "{" statements "}"')
+    @_('IF LPAREN expression RPAREN "{" statements "}" else_statement')
     def if_statement(self, p):
-        return ("ELIF", p.expression0, p.expression1, ('block', p.statements1))
+        return ("IF", p.expression, ('block', p.statements), else_statement)
 
-    # @_('ID LPAREN expressions RPAREN')
-    # def function_call(self, p):
-    #     return ("CALL", p.ID, p.expressions)
+    @_('ELSE "{" statements "}"')
+    def else_statement(self, p):
+        return ("ELSE", ('if', p.expression, ('block', p.statements1)))
+
+    @_('ELSE IF LPAREN expression RPAREN "{" statements "}"')
+    def else_statement(self, p):
+        return ("ELIF", p.expression, ('block', p.statements))
+
+    
+    @_('')  # no else or elif case
+    def else_statement(self, p):
+        return None

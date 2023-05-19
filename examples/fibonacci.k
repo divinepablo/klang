@@ -1,19 +1,14 @@
-int fibonacci(int hi) {
-    int a = 1;
-    int b = 0;
-    int i = 0;
-    while (i < hi) {
-        int c = b;
-        b = a;
-        a = c + b;
-        i++;
+int fibonacci(int index) {
+    if (index <= 1) {
+        return index;
     }
-    
-    print(a);
+    return fibonacci(index - 1) + fibonacci(index - 2);
 }
 
+
 void main() {
-    int hi = 50; # fib numbers
-    print(fibonacci(hi));
-    print("finish");
+    int hi = 6; # fib numbers
+    printf("fib: %d\n", fibonacci(hi));
+    printf("finish\n");
+    return;
 }

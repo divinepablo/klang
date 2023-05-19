@@ -12,3 +12,10 @@ llvm_types = {
 
     'void': ir.VoidType()
 }
+
+py_to_llvm_types = {
+    int: ir.IntType(32),
+    float: ir.FloatType(),
+    chr: ir.IntType(8),
+    bool: ir.IntType(1),
+}
