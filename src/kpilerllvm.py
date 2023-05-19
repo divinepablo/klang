@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import os, subprocess, llvmlite, colorama
 from typing import Dict, Union
 from kparser import KParser
 from klexer import KLexer
@@ -9,7 +8,6 @@ from llvmlite import ir
 from llvmlite import binding as llvm
 import os
 import subprocess
-import llvmlite
 import colorama
 import traceback
 
@@ -33,7 +31,8 @@ class FunctionDefinition:
 
 class KPiler:
     def __init__(self) -> None:
-        self.create_module()
+        self.module = ir.Module(name="kmodule")
+        self.module.triple = llvm.get_default_triple()
         self.llvm_functions: dict[str, ir.Function] = {}
         self.stringc = 0
 
@@ -213,7 +212,7 @@ class KPiler:
             for pytype, lltype in py_to_llvm_types.items():
                 if isinstance(inst, pytype):
                     return lltype(inst)
-            raise Exception("unexpected type")
+            raise TypeError("unexpected type")
             # return llvm_types['int'](inst)
 
     def compile_code(self, src: str, module: ir.Module = None):
@@ -236,7 +235,12 @@ class KPiler:
                 self.compile_function(hi)
             elif opcode == 'IMPORT':
                 with open(hi[1], 'r') as f:
-                    self.compile_code(f.read())
+                    original = self.module
+                    mod = self.compile_code(f.read(), module=ir.Module('imported'))
+                    self.module = original
+                    for function in mod.functions:
+                        ir.Function(original, function.ftype, function.name)
+                    
 
         return self.module
 
@@ -283,7 +287,7 @@ class KPiler:
                            '.ll' for file in _files], '-o', output], check=True)
 
         for f in os.listdir('build'):
-            os.remove('build/' + f)
+            pass#os.remove('build/' + f)
 
         return fail
 
