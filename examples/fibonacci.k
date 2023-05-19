@@ -2,7 +2,7 @@ int fibonacci(int index) {
     if (index <= 1) {
         return index;
     }
-    return hi(index - 1) + hi(index - 2);
+    return fibonacci(index - 1) + fibonacci(index - 2);
 }
 
 

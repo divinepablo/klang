@@ -218,40 +218,52 @@ class KPiler:
 
         return self.module
     
-    def compile(self, *files):
+    def compile(self, *files, output, asm=False):
+        fail = False
         hi = 0
-        os.makedirs('build', exist_ok=True)
+        if os.path.exists('build'):
+            for f in os.listdir('build'):
+                os.remove('build/' + f)
+            os.removedirs('build')
+        os.makedirs('build')
         _files = files
         try:
             for file in _files:
                 hi += 1
-                print(f'Compiling {file} ({hi}/{len(_files)})', end='', flush=True)
+                print(f'{colorama.Fore.YELLOW}Compiling {file} ({hi}/{len(_files)}){colorama.Fore.RESET}', end='', flush=True)
                 with open(file, 'r') as f:
                     self.create_module(hi)
                     hi2 = self.compile_code(f.read())
-                    print(f'\rSaving {file} ({hi}/{len(_files)})', end='', flush=True)
                     compiled = str(hi2)
+                    print(f'\r{colorama.Fore.LIGHTGREEN_EX}Saving {file} ({hi}/{len(_files)}){colorama.Fore.RESET}', end='', flush=True)
 
                     with open('build/' + file.replace('/', '.') + '.ll', 'w', encoding='utf-8') as f:
                         f.write(compiled)
                 
-                print(f'\r{colorama.Fore.LIGHTGREEN_EX}Compiled {file} ({hi}/{len(_files)}) {colorama.Fore.RESET}')
+                print(f'\r{colorama.Fore.GREEN}Compiled {file} ({hi}/{len(_files)}) {colorama.Fore.RESET}')
         except Exception as e:
             print(f'\r{colorama.Fore.RED}Failed to compile {file} ({hi}/{len(_files)}) {colorama.Fore.RESET}')
             traceback.print_exc()
-        subprocess.run(['llvm-link', *['build/' + file.replace('/', '.') + '.ll' for file in _files], '-o', 'build/output.ll.bc'], check=True)
-        subprocess.run(['llvm-dis', 'build/output.ll.bc', '-o', 'build/output.ll'], check=True)
+            fail = True
 
-        with open('build/output.ll', 'r', encoding='utf-8') as f:
-            contents = f.read()
+        if asm:
+            subprocess.run(['llvm-link', *['build/' + file.replace('/', '.') + '.ll' for file in _files], '-o', 'build/output.ll.bc'], check=True)
+            subprocess.run(['llvm-dis', 'build/output.ll.bc', '-o', output], check=True)
+
+        else:
+            subprocess.run(['clang', *['build/' + file.replace('/', '.') + '.ll' for file in _files], '-o', output], check=True)
+
         for f in os.listdir('build'):
             os.remove('build/' + f)
         
-        return contents
+        return fail
 
-def main(*sources):
-    compiled = KPiler().compile(*sources)
-    print('Compiled successfully')
+def main(*sources, output, asm=False):
+    compiled = KPiler().compile(*sources, asm=asm, output=output)
+    if not compiled:
+        print(f'{colorama.Fore.GREEN}Compiled successfully{colorama.Fore.RESET}')
+    else:
+        print(f'{colorama.Fore.RED}Compiled unsuccessfully{colorama.Fore.RESET}')
     return str(compiled)
 
 
