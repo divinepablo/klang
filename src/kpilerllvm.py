@@ -214,7 +214,6 @@ class KPiler:
                 if isinstance(inst, pytype):
                     return lltype(inst)
             raise TypeError("unexpected type")
-            # return llvm_types['int'](inst)
 
     def compile_code(self, src: str, module: ir.Module = None):
         if module is not None:
@@ -287,7 +286,7 @@ class KPiler:
                            '.ll' for file in _files], '-o', output], check=True)
 
         for f in os.listdir('build'):
-            pass#os.remove('build/' + f)
+            os.remove('build/' + f)
 
         return fail
 

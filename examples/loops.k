@@ -1,8 +1,9 @@
 void main() {
     int hisirhello = 0;
     while (hisirhello < 5) {
-        print(hisirhello);
+        printf("%d\n", hisirhello);
         hisirhello++;
     }
-    print("no loop");
+    printf("no loop\n");
+    return;
 }
