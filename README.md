@@ -13,6 +13,7 @@ mainly because of the usage of SLY and instead of recoding the whole language in
   * [x] Add `+, -. *. /` Operators
   * [x] Add `+=, -=. *=. /=, ++, --` Operators
   * [ ] Add arrays
+  * [ ] Add structs
   * [ ] Add pointers (not fully finished)
   * [x] Add if statements
   * [ ] Add macros
