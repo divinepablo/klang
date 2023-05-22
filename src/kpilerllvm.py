@@ -39,6 +39,7 @@ class KPiler:
     def create_module(self, hello: int = 0):
         self.module = ir.Module(name=f"kmodule={hello}")
         self.module.triple = llvm.get_default_triple()
+        self.llvm_functions = {}
 
     def compile_function(self, func):
         name = func[1]
@@ -220,13 +221,12 @@ class KPiler:
                 if isinstance(inst, pytype):
                     return lltype(inst)
             raise TypeError("unexpected type")
-            # return llvm_types['int'](inst)
 
     def compile_code(self, src: str, module: ir.Module = None):
         if module is not None:
             self.module = module
 
-        if not 'printf' in self.llvm_functions:
+        if not 'printf' in self.module.globals:
             func_type = ir.FunctionType(
                 llvm_types['int'], [ir.IntType(8).as_pointer()], True)
             llvm_func = ir.Function(self.module, func_type, name='printf')
@@ -242,11 +242,10 @@ class KPiler:
                 self.compile_function(hi)
             elif opcode == 'IMPORT':
                 with open(hi[1], 'r') as f:
-                    original = self.module
-                    mod = self.compile_code(f.read(), module=ir.Module('imported'))
-                    self.module = original
+                    mod = KPiler().compile_code(f.read(), module=ir.Module('imported'))
                     for function in mod.functions:
-                        ir.Function(original, function.ftype, function.name)
+                        if function.name in self.llvm_functions: continue
+                        ir.Function(self.module, function.ftype, function.name)
                     
 
         return self.module
@@ -294,7 +293,7 @@ class KPiler:
                            '.ll' for file in _files], '-o', output], check=True)
 
         for f in os.listdir('build'):
-            pass#os.remove('build/' + f)
+            os.remove('build/' + f)
 
         return fail
 
