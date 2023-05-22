@@ -25,7 +25,7 @@ def hid(t):
 class FunctionDefinition:
     name: str
     llvm_function: ir.Function = None
-    local_variables: Dict[str, Union[int, ir.Value]
+    local_variables: Dict[str, Union[ir.AllocaInstr]
                           ] = field(default_factory=dict)
 
 
@@ -74,7 +74,7 @@ class KPiler:
                     value = self.compile_instruction(func, inst[3], builder)
                     var_type = value.type
                     alloca = builder.alloca(var_type, name=inst[2])
-
+                    
                     func.local_variables[inst[2]] = alloca
                     return builder.store(value, alloca)
                 else:
@@ -165,6 +165,13 @@ class KPiler:
                     return builder.ret(value)
                 else:
                     return builder.ret_void()
+            elif opcode == 'ADDRESS':
+                # var_inst = inst[1]
+                
+                return builder.gep(func.local_variables[inst[1]], [ir.Constant(llvm_types['int'], 0)])
+            elif opcode == 'DEREFERENCE':
+                # var_inst = self.compile_instruction(func, inst[1], builder)
+                return builder.load(builder.load(func.local_variables[inst[1]]))
             elif opcode == 'WHILE':
                 cond_block = func.llvm_function.append_basic_block(
                     'while.cond')
@@ -195,7 +202,7 @@ class KPiler:
             inst += '\0'
             self.stringc += 1
             string_constant = ir.Constant(ir.ArrayType(
-                llvm_types['char'], len(inst)), bytearray(inst.encode("utf-8")))
+         llvm_types['char'], len(inst)), bytearray(inst.encode("utf-8")))
             string_global = ir.GlobalVariable(
                 self.module, string_constant.type, name=f".str{self.stringc}")
             string_global.global_constant = True

@@ -73,6 +73,18 @@ class KParser(Parser):
     def expression(self, p):
         return True
 
+    @_('dereference')
+    def expression(self, p):
+        return p.dereference
+    
+    @_('TIMES ID')
+    def dereference(self, p):
+        return ('DEREFERENCE', p.ID)
+    
+    @_('\'&\' ID')
+    def expression(self, p):
+        return ('ADDRESS', p.ID)
+    
     @_('expression PLUS expression')
     def expression(self, p):
         return ('ADD', p.expression0, p.expression1)
@@ -158,6 +170,26 @@ class KParser(Parser):
     def type(self, p):
         return 'void'
 
+    @_('FLOAT_TYPE TIMES')
+    def type(self, p):
+        return 'float*'
+
+    @_('INT_TYPE TIMES')
+    def type(self, p):
+        return 'int*'
+
+    @_('STRING_TYPE TIMES')
+    def type(self, p):
+        return 'string*'
+
+    @_('BOOL_TYPE TIMES')
+    def type(self, p):
+        return 'bool*'
+
+    @_('VOID_TYPE TIMES')
+    def type(self, p):
+        return 'void*'
+
     @_('type ID ASSIGN expression SEP')
     def declaration(self, p):
         return ("DECLARE", p.type, p.ID, p.expression)
@@ -165,6 +197,10 @@ class KParser(Parser):
     @_('ID ASSIGN expression')
     def assignment(self, p):
         return ("ASSIGN", p.ID, p.expression)
+    
+    # @_('dereference ASSIGN expression')
+    # def assignment(self, p):
+    #     return ("ASSIGN", p.ID, p.expression)
 
     @_('ID ADDASSIGN expression')
     def assignment(self, p):
