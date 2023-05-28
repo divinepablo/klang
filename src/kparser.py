@@ -189,6 +189,18 @@ class KParser(Parser):
     @_('VOID_TYPE TIMES')
     def type(self, p):
         return 'void*'
+    
+    @_('TIMES')
+    def pointer(self, p):
+        return 1
+    
+    @_('pointer TIMES')
+    def pointer(self, p):
+        return p.pointer + 1
+    
+    @_('INT_TYPE pointer')
+    def type(self, p):
+        return ('int*', p.pointer)
 
     @_('type ID ASSIGN expression SEP')
     def declaration(self, p):
