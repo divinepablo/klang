@@ -37,7 +37,7 @@ class KPiler:
         self.stringc = 0
 
     def create_module(self, hello: int = 0):
-        self.module = ir.Module(name=f"kmodule={hello}")
+        self.module = ir.Module(name=f"kmodule-{hello}")
         self.module.triple = llvm.get_default_triple()
         self.llvm_functions = {}
 
