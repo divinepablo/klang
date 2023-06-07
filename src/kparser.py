@@ -89,9 +89,9 @@ class KParser(Parser):
     def expression(self, p):
         return p.dereference
     
-    @_('TIMES ID')
+    @_('pointer ID')
     def dereference(self, p):
-        return ('DEREFERENCE', p.ID)
+        return ('DEREFERENCE', p.ID, p.pointer)
     
     @_('\'&\' ID')
     def expression(self, p):
@@ -186,25 +186,25 @@ class KParser(Parser):
     def type(self, p):
         return 'void'
 
-    @_('FLOAT_TYPE TIMES')
+    @_('FLOAT_TYPE pointer')
     def type(self, p):
-        return 'float*'
+        return 'float*'+ ('*' * p.pointer)
 
-    @_('INT_TYPE TIMES')
+    @_('INT_TYPE pointer')
     def type(self, p):
-        return 'int*'
+        return 'int'+ ('*' * p.pointer)
 
-    @_('STRING_TYPE TIMES')
+    @_('STRING_TYPE pointer')
     def type(self, p):
-        return 'string*'
+        return 'string*'+ ('*' * p.pointer)
 
-    @_('BOOL_TYPE TIMES')
+    @_('BOOL_TYPE pointer')
     def type(self, p):
-        return 'bool*'
+        return 'bool*'+ ('*' * p.pointer)
 
-    @_('VOID_TYPE TIMES')
+    @_('VOID_TYPE pointer')
     def type(self, p):
-        return 'void*'
+        return 'void*' + ('*' * p.pointer)
     
     @_('TIMES')
     def pointer(self, p):
@@ -213,10 +213,6 @@ class KParser(Parser):
     @_('pointer TIMES')
     def pointer(self, p):
         return p.pointer + 1
-    
-    @_('INT_TYPE pointer')
-    def type(self, p):
-        return ('int*', p.pointer)
 
     @_('variable_declaration')
     def declaration(self, p):
@@ -233,6 +229,10 @@ class KParser(Parser):
     @_('ID ASSIGN expression')
     def assignment(self, p):
         return ("ASSIGN", p.ID, p.expression)
+
+    @_('pointer ID ASSIGN expression')
+    def assignment(self, p):
+        return ("DEREFERENCE_ASSIGN", p.ID, p.pointer, p.expression)
     
     # @_('dereference ASSIGN expression')
     # def assignment(self, p):

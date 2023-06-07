@@ -14,7 +14,7 @@ mainly because of the usage of SLY and instead of recoding the whole language in
   * [x] Add `+=, -=. *=. /=, ++, --` Operators
   * [ ] Add arrays
   * [ ] Add structs
-  * [ ] Add pointers (not fully finished)
+  * [x] Add pointers ~~(not fully finished)~~
   * [x] Add if statements
   * [ ] Add macros
   * [x] Finish imports ~~(function calls are broken)~~

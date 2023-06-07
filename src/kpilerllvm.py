@@ -3,7 +3,7 @@ from typing import Dict, Union
 from kparser import KParser
 from klexer import KLexer
 from dataclasses import dataclass, field
-from shared import llvm_types, py_to_llvm_types
+from shared import llvm_types
 from llvmlite import ir
 from llvmlite import binding as llvm
 import os
@@ -37,7 +37,7 @@ class KPiler:
         self.stringc = 0
 
     def create_module(self, hello: int = 0):
-        self.module = ir.Module(name=f"kmodule={hello}")
+        self.module = ir.Module(name=f"kmodule-{hello}")
         self.module.triple = llvm.get_default_triple()
         self.llvm_functions = {}
 
@@ -66,135 +66,175 @@ class KPiler:
 
     def compile_instruction(self, func: FunctionDefinition, inst, builder: ir.IRBuilder):
         if isinstance(inst, tuple):
-            opcode = inst[0]
-            if opcode == 'var':
-                return builder.load(func.local_variables[inst[1]])
+            try:
+                opcode = inst[0]
+                if opcode == 'var':
+                    return builder.load(func.local_variables[inst[1]])
 
-            elif opcode == 'DECLARE':
-                if isinstance(inst[3], str):
+                elif opcode == 'DECLARE':
+                    if isinstance(inst[3], str):
+                        value = self.compile_instruction(
+                            func, inst[3], builder)
+                        var_type = value.type
+                        alloca = builder.alloca(var_type, name=inst[2])
+
+                        func.local_variables[inst[2]] = alloca
+                        return builder.store(value, alloca)
+                    else:
+                        value = self.compile_instruction(
+                            func, inst[3], builder)
+                        var_type = llvm_types[inst[1]]
+                        alloca = builder.alloca(var_type, name=inst[2])
+                        func.local_variables[inst[2]] = alloca
+                        return builder.store(value, alloca)
+                elif opcode == 'GT':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.icmp_signed('>', expression1, expression2)
+                elif opcode == 'LT':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.icmp_signed('<', expression1, expression2)
+                elif opcode == 'GTE':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.icmp_signed('>=', expression1, expression2)
+                elif opcode == 'ADD':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.add(expression1, expression2)
+                elif opcode == 'SUB':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.sub(expression1, expression2)
+                elif opcode == 'MUL':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.mul(expression1, expression2)
+                elif opcode == 'DIV':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.sdiv(expression1, expression2)
+                elif opcode == 'MOD':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.srem(expression1, expression2)
+                elif opcode == 'LTE':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.icmp_signed('<=', expression1, expression2)
+                elif opcode == 'EQ':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.icmp_signed('==', expression1, expression2)
+                elif opcode == 'NEQ':
+                    expression1 = self.compile_instruction(
+                        func, inst[1], builder)
+                    expression2 = self.compile_instruction(
+                        func, inst[2], builder)
+                    return builder.icmp_signed('!=', expression1, expression2)
+                elif opcode == 'IF':
+                    if_cond = self.compile_instruction(func, inst[1], builder)
+
+                    if len(inst) > 3:  # There is an else or else if branch
+                        else_inst = inst[3]
+                        else_opcode = else_inst[0]
+                        if else_opcode == 'ELSE':
+                            with builder.if_else(if_cond) as (then, otherwise):
+                                with then:
+                                    for inst2 in inst[2][1]:
+                                        self.compile_instruction(
+                                            func, inst2, builder)
+                                with otherwise:
+                                    for inst2 in else_inst[1][1]:
+                                        self.compile_instruction(
+                                            func, inst2, builder)
+                        elif else_opcode == 'ELIF':
+                            pass  # TODO: like actually make this
+                    else:
+                        with builder.if_then(if_cond):
+                            for inst2 in inst[2][1]:
+                                self.compile_instruction(func, inst2, builder)
+                elif opcode == 'CALL':
+                    callee_func = self.module.get_global(inst[1])
+                    args = []
+                    for arg in inst[2]:
+                        if arg:
+                            args.append(self.compile_instruction(
+                                func, arg, builder))
+                    return builder.call(callee_func, args)
+                elif opcode == 'ASSIGN':
+                    value = self.compile_instruction(func, inst[2], builder)
+                    index = func.local_variables[inst[1]]
+                    return builder.store(value, index)
+                elif opcode == 'RETURN':
+                    if inst[1] != 'void':
+                        value = self.compile_instruction(
+                            func, inst[1], builder)
+                        return builder.ret(value)
+                    else:
+                        return builder.ret_void()
+                elif opcode == 'ADDRESS':
+                    return builder.gep(func.local_variables[inst[1]], [ir.Constant(llvm_types['int'], 0)])
+                elif opcode == 'DEREFERENCE':
+                    ptr = builder.load(func.local_variables[inst[1]])
+                    for _ in range(inst[2]):
+                        ptr = builder.load(ptr)
+                    return ptr
+                elif opcode == 'DEREFERENCE_ASSIGN':
                     value = self.compile_instruction(func, inst[3], builder)
-                    var_type = value.type
-                    alloca = builder.alloca(var_type, name=inst[2])
+                    ptr = builder.load(func.local_variables[inst[1]])
+                    for _ in range(inst[2]-1): # hardcoded -1 so that it works
+                        ptr = builder.load(ptr)
                     
-                    func.local_variables[inst[2]] = alloca
-                    return builder.store(value, alloca)
-                else:
-                    value = self.compile_instruction(func, inst[3], builder)
-                    var_type = llvm_types[inst[1]]
-                    alloca = builder.alloca(var_type, name=inst[2])
-                    func.local_variables[inst[2]] = alloca
-                    return builder.store(value, alloca)
-            elif opcode == 'GT':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.icmp_signed('>', expression1, expression2)
-            elif opcode == 'LT':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.icmp_signed('<', expression1, expression2)
-            elif opcode == 'GTE':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.icmp_signed('>=', expression1, expression2)
-            elif opcode == 'ADD':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.add(expression1, expression2)
-            elif opcode == 'SUB':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.sub(expression1, expression2)
-            elif opcode == 'MUL':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.mul(expression1, expression2)
-            elif opcode == 'DIV':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.sdiv(expression1, expression2)
-            elif opcode == 'MOD':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.srem(expression1, expression2)
-            elif opcode == 'LTE':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.icmp_signed('<=', expression1, expression2)
-            elif opcode == 'EQ':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.icmp_signed('==', expression1, expression2)
-            elif opcode == 'NEQ':
-                expression1 = self.compile_instruction(func, inst[1], builder)
-                expression2 = self.compile_instruction(func, inst[2], builder)
-                return builder.icmp_signed('!=', expression1, expression2)
-            elif opcode == 'IF':
-                if_cond = self.compile_instruction(func, inst[1], builder)
-                
-                if len(inst) > 3:  # There is an else or else if branch
-                    else_inst = inst[3]
-                    else_opcode = else_inst[0]
-                    if else_opcode == 'ELSE':
-                        with builder.if_else(if_cond) as (then, otherwise):
-                            with then:
-                                for inst2 in inst[2][1]:
-                                    self.compile_instruction(func, inst2, builder)
-                            with otherwise:
-                                for inst2 in else_inst[1][1]:
-                                    self.compile_instruction(func, inst2, builder)
-                    elif else_opcode == 'ELIF':
-                        pass # TODO: like actually make this
-                else:
-                    with builder.if_then(if_cond):
-                        for inst2 in inst[2][1]:
-                            self.compile_instruction(func, inst2, builder)
-            elif opcode == 'CALL':
-                callee_func = self.module.get_global(inst[1])
-                args = []
-                for arg in inst[2]:
-                    if arg:
-                        args.append(self.compile_instruction(
-                            func, arg, builder))
-                return builder.call(callee_func, args)
-            elif opcode == 'ASSIGN':
-                value = self.compile_instruction(func, inst[2], builder)
-                index = func.local_variables[inst[1]]
-                return builder.store(value, index)
-            elif opcode == 'RETURN':
-                if inst[1] != 'void':
-                    value = self.compile_instruction(func, inst[1], builder)
-                    return builder.ret(value)
-                else:
-                    return builder.ret_void()
-            elif opcode == 'ADDRESS':
-                # var_inst = inst[1]
-                
-                return builder.gep(func.local_variables[inst[1]], [ir.Constant(llvm_types['int'], 0)])
-            elif opcode == 'DEREFERENCE':
-                # var_inst = self.compile_instruction(func, inst[1], builder)
-                return builder.load(builder.load(func.local_variables[inst[1]]))
-            elif opcode == 'WHILE':
-                cond_block = func.llvm_function.append_basic_block(
-                    'while.cond')
-                loop_block = func.llvm_function.append_basic_block(
-                    'while.loop')
-                end_block = func.llvm_function.append_basic_block('while.end')
+                    return builder.store(value, ptr)
+                elif opcode == 'WHILE':
+                    cond_block = func.llvm_function.append_basic_block(
+                        'while.cond')
+                    loop_block = func.llvm_function.append_basic_block(
+                        'while.loop')
+                    end_block = func.llvm_function.append_basic_block(
+                        'while.end')
 
-                builder.branch(cond_block)
+                    builder.branch(cond_block)
 
-                builder.position_at_end(cond_block)
-                while_cond = self.compile_instruction(func, inst[1], builder)
-                builder.cbranch(while_cond, loop_block, end_block)
+                    builder.position_at_end(cond_block)
+                    while_cond = self.compile_instruction(
+                        func, inst[1], builder)
+                    builder.cbranch(while_cond, loop_block, end_block)
 
-                builder.position_at_end(loop_block)
-                for inst2 in inst[2][1]:
-                    self.compile_instruction(func, inst2, builder)
-                builder.branch(cond_block)
+                    builder.position_at_end(loop_block)
+                    for inst2 in inst[2][1]:
+                        self.compile_instruction(func, inst2, builder)
+                    builder.branch(cond_block)
 
-                builder.position_at_end(end_block)
+                    builder.position_at_end(end_block)
 
-            # Add more opcode handling cases here, similar to the previous implementation
-            # but using the ir.Builder methods instead of string-based instructions
+                # Add more opcode handling cases here, similar to the previous implementation
+                # but using the ir.Builder methods instead of string-based instructions
+            except Exception as e:
+                print(f"Error when compiling: {inst}")
+                raise e
 
             else:
                 raise Exception(f'Unknown opcode \'{opcode}\': "{inst}"')
@@ -203,7 +243,7 @@ class KPiler:
             inst += '\0'
             self.stringc += 1
             string_constant = ir.Constant(ir.ArrayType(
-         llvm_types['char'], len(inst)), bytearray(inst.encode("utf-8")))
+                llvm_types['char'], len(inst)), bytearray(inst.encode("utf-8")))
             string_global = ir.GlobalVariable(
                 self.module, string_constant.type, name=f".str{self.stringc}")
             string_global.global_constant = True
@@ -217,7 +257,9 @@ class KPiler:
             # Implement array handling using ir.Builder methods
             pass
         else:
-            for pytype, lltype in py_to_llvm_types.items():
+            for pytype, lltype in llvm_types.items():
+                if isinstance(pytype, str):
+                    continue
                 if isinstance(inst, pytype):
                     return lltype(inst)
             raise TypeError("unexpected type")
@@ -246,9 +288,9 @@ class KPiler:
                 with open(hi[1], 'r') as f:
                     mod = KPiler().compile_code(f.read(), module=ir.Module('imported'))
                     for function in mod.functions:
-                        if function.name in self.llvm_functions: continue
+                        if function.name in self.llvm_functions:
+                            continue
                         ir.Function(self.module, function.ftype, function.name)
-                    
 
         return self.module
 
@@ -307,6 +349,7 @@ def main(*sources, output, asm=False):
     else:
         print(f'{colorama.Fore.RED}Compiled unsuccessfully{colorama.Fore.RESET}')
     return str(compiled)
+
 
 def make_module(source):
     return KPiler().compile_code(source)
