@@ -2,9 +2,6 @@ from llvmlite import ir
 
 structs: dict[str, ir.BaseStructType] = {}
 
-llvm_types = {
-
-
 class LLVMTypeDict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
