@@ -238,6 +238,8 @@ class KPiler:
 
         for hi in parsed:
             opcode = hi[0]
+            if opcode == 'DECLARE_STRUCT':
+                print(hi[:1])
             if opcode == 'DECLARE_FUNC':
                 self.compile_function(hi)
             elif opcode == 'IMPORT':

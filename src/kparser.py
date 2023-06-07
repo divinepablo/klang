@@ -36,6 +36,10 @@ class KParser(Parser):
     @_('empty')
     def statements(self, p):
         return []
+    
+    @_('empty')
+    def struct_members(self, p):
+        return []
 
     @_('empty')
     def expressions(self, p):
@@ -48,6 +52,14 @@ class KParser(Parser):
     @_('statements statement')
     def statements(self, p):
         return p.statements + (p.statement, )
+    
+    @_('variable_declaration')
+    def struct_members(self, p):
+        return (p.statement, )
+
+    @_('struct_members variable_declaration')
+    def struct_members(self, p):
+        return p.struct_members + (p.variable_declaration, )
 
     @_('statement')
     def program(self, p):
@@ -137,6 +149,10 @@ class KParser(Parser):
     @_('FLOAT_TYPE')
     def type(self, p):
         return 'float'
+    
+    @_('STRUCT_TYPE')
+    def type(self, p):
+        return 'struct'
 
     @_('INT_TYPE')
     def type(self, p):
@@ -202,8 +218,16 @@ class KParser(Parser):
     def type(self, p):
         return ('int*', p.pointer)
 
+    @_('variable_declaration')
+    def declaration(self, p):
+        return p.variable_declaration
+    
     @_('type ID ASSIGN expression SEP')
     def declaration(self, p):
+        return ("DECLARE", p.type, p.ID, p.expression)
+    
+    @_('type ID SEP')
+    def variable_declaration(self, p):
         return ("DECLARE", p.type, p.ID, p.expression)
 
     @_('ID ASSIGN expression')
@@ -282,6 +306,10 @@ class KParser(Parser):
     @_('type ID LPAREN farg_list RPAREN "{" statements "}"')
     def declaration(self, p):
         return ("DECLARE_FUNC", p.ID, p.type, ('args', p.farg_list), ('block', p.statements))
+    
+    @_('STRUCT_TYPE ID "{" struct_members "}"')
+    def declaration(self, p):
+        return ("DECLARE_STRUCT", p.ID, ('members', p.struct_members))
 
     @_('type ID LPAREN farg_list RPAREN SEP')
     def declaration(self, p):

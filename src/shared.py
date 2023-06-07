@@ -1,4 +1,7 @@
 from llvmlite import ir
+
+structs: dict[str, ir.BaseStructType] = {}
+
 llvm_types = {
     'int': ir.IntType(32),
     'float': ir.FloatType(),

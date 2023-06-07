@@ -5,7 +5,7 @@ class KLexer(Lexer): # this WILL error due to how SLY works (shit is beyond refl
     tokens = {
         ID, IMPORT,
         IF, ELSE, WHILE, RETURN,
-        VOID_TYPE, FLOAT_TYPE, INT_TYPE, BOOL_TYPE, STRING_TYPE,
+        VOID_TYPE, FLOAT_TYPE, INT_TYPE, BOOL_TYPE, STRUCT_TYPE, STRING_TYPE,
         FLOAT, INT, STRING,
         TRUE, FALSE, NULL,
         PLUS, TIMES, MINUS, DIVIDE, MODULO, 
@@ -30,6 +30,7 @@ class KLexer(Lexer): # this WILL error due to how SLY works (shit is beyond refl
     ID['int'] = INT_TYPE
     ID['string'] = STRING_TYPE
     ID['bool'] = BOOL_TYPE
+    ID['struct'] = STRUCT_TYPE
     ID['true'] = TRUE
     ID['false'] = FALSE
     ID['return'] = RETURN
