@@ -8,7 +8,7 @@ class KLexer(Lexer): # this WILL error due to how SLY works (shit is beyond refl
         VOID_TYPE, FLOAT_TYPE, INT_TYPE, BOOL_TYPE, STRUCT_TYPE, STRING_TYPE,
         FLOAT, INT, STRING,
         TRUE, FALSE, NULL,
-        PLUS, TIMES, MINUS, DIVIDE, MODULO, 
+        PLUS, TIMES, MINUS, DIVIDE, MODULO, ARROW, 
         INCREM, DECREM, ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODASSIGN,
         NEQ, EQ, GT, LT, GTE, LTE,
         ASSIGN, LPAREN, RPAREN, LBRACKET, RBRACKET,
@@ -50,6 +50,7 @@ class KLexer(Lexer): # this WILL error due to how SLY works (shit is beyond refl
     MODASSIGN = r'%='
     INCREM = r'\+\+'
     DECREM = r'--'
+    ARROW = r'->'
     PLUS = r'\+'
     MINUS = r'-'
     TIMES = r'\*'

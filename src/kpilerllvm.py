@@ -3,22 +3,13 @@ from typing import Dict, Union
 from kparser import KParser
 from klexer import KLexer
 from dataclasses import dataclass, field
-from shared import llvm_types
+from shared import *
 from llvmlite import ir
 from llvmlite import binding as llvm
 import os
 import subprocess
 import colorama
 import traceback
-
-
-def hid(t):
-    if isinstance(t, tuple):
-        return "\n".join([hid(x) for x in t])
-    if isinstance(t, list):
-        return '['+", ".join([hid(x) for x in t])+']'
-    else:
-        return str(t)
 
 
 @dataclass
@@ -72,6 +63,11 @@ class KPiler:
                     return builder.load(func.local_variables[inst[1]])
 
                 elif opcode == 'DECLARE':
+                    if len(inst) == 3:
+                        var_type = llvm_types[inst[1]]
+                        alloca = builder.alloca(var_type, name=inst[2])
+                        func.local_variables[inst[2]] = alloca
+                        return alloca
                     if isinstance(inst[3], str):
                         value = self.compile_instruction(
                             func, inst[3], builder)
@@ -187,6 +183,33 @@ class KPiler:
                     value = self.compile_instruction(func, inst[2], builder)
                     index = func.local_variables[inst[1]]
                     return builder.store(value, index)
+                elif opcode == 'STRUCT_ACCESS':
+                    int32 = llvm_types['int']
+                    if inst[1][0] == 'var':
+                        ptr = func.local_variables[inst[1][1]]
+                    else:
+                        ptr = self.compile_instruction(func, inst[1], builder)
+                    print(ptr)
+                    vartype = (f:= lambda ptrtype: ptrtype if not isinstance(ptrtype, ir.PointerType) else f(ptrtype.pointee))(ptr.type)
+                    print(vartype, ptr.type)
+                    if inst[2] not in structs_dict[vartype]:
+                        raise AttributeError("Can't access undefined member", inst)
+                    return builder.gep(ptr, [int32(0), int32(structs_dict[vartype][inst[2]])], inbounds=True)
+                elif opcode == 'STRUCT_VALUE_ACCESS':
+                    int32 = llvm_types['int']
+                    if inst[1][0] == 'var':
+                        ptr = func.local_variables[inst[1][1]]
+                    else:
+                        ptr = self.compile_instruction(func, inst[1], builder)
+                    vartype = ptr.type if not isinstance(ptr.type, ir.PointerType) else ptr.type.pointee
+                    if inst[2] not in structs_dict[vartype]:
+                        raise AttributeError("Can't access undefined member", inst)
+                    ptr2 = builder.gep(ptr, [int32(0), int32(structs_dict[vartype][inst[2]])], inbounds=True)
+                    return builder.load(ptr2)
+                elif opcode == 'STRUCT_ASSIGN':
+                    ptr = self.compile_instruction(func, inst[1], builder)
+                    value = self.compile_instruction(func, inst[2], builder)
+                    return builder.store(value, ptr)
                 elif opcode == 'RETURN':
                     if inst[1] != 'void':
                         value = self.compile_instruction(
@@ -195,15 +218,19 @@ class KPiler:
                     else:
                         return builder.ret_void()
                 elif opcode == 'ADDRESS':
-                    return builder.gep(func.local_variables[inst[1]], [ir.Constant(llvm_types['int'], 0)])
+                    if inst[1][0] == 'var':
+                        ptr = func.local_variables[inst[1][1]]
+                    else:
+                        ptr = self.compile_instruction(func, inst[1], builder)
+                    return builder.gep(ptr, [ir.Constant(llvm_types['int'], 0)])
                 elif opcode == 'DEREFERENCE':
-                    ptr = builder.load(func.local_variables[inst[1]])
+                    ptr = self.compile_instruction(func, inst[1], builder)
                     for _ in range(inst[2]):
                         ptr = builder.load(ptr)
                     return ptr
                 elif opcode == 'DEREFERENCE_ASSIGN':
                     value = self.compile_instruction(func, inst[3], builder)
-                    ptr = builder.load(func.local_variables[inst[1]])
+                    ptr = self.compile_instruction(func, inst[1], builder)
                     for _ in range(inst[2]-1): # hardcoded -1 so that it works
                         ptr = builder.load(ptr)
                     
@@ -281,7 +308,12 @@ class KPiler:
         for hi in parsed:
             opcode = hi[0]
             if opcode == 'DECLARE_STRUCT':
-                print(hi[:1])
+                # print(hi[2][1])
+                struct = ctx.get_identified_type(f'struct.{hi[1]}')
+                types = [llvm_types[x[1]] for x in hi[2][1]]
+                struct.set_body(*types)
+                structs_dict[struct] = {x[2]: hi[2][1].index(x) for x in hi[2][1]}
+                # print(structs_dict[struct])
             if opcode == 'DECLARE_FUNC':
                 self.compile_function(hi)
             elif opcode == 'IMPORT':

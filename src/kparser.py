@@ -55,7 +55,7 @@ class KParser(Parser):
     
     @_('variable_declaration')
     def struct_members(self, p):
-        return (p.statement, )
+        return (p.variable_declaration, )
 
     @_('struct_members variable_declaration')
     def struct_members(self, p):
@@ -89,9 +89,9 @@ class KParser(Parser):
     def expression(self, p):
         return p.dereference
     
-    @_('pointer ID')
+    @_('pointer expression')
     def dereference(self, p):
-        return ('DEREFERENCE', p.ID, p.pointer)
+        return ('DEREFERENCE', p.expression, p.pointer)
     
     @_('\'&\' ID')
     def expression(self, p):
@@ -188,7 +188,7 @@ class KParser(Parser):
 
     @_('FLOAT_TYPE pointer')
     def type(self, p):
-        return 'float*'+ ('*' * p.pointer)
+        return 'float'+ ('*' * p.pointer)
 
     @_('INT_TYPE pointer')
     def type(self, p):
@@ -196,15 +196,15 @@ class KParser(Parser):
 
     @_('STRING_TYPE pointer')
     def type(self, p):
-        return 'string*'+ ('*' * p.pointer)
+        return 'string'+ ('*' * p.pointer)
 
     @_('BOOL_TYPE pointer')
     def type(self, p):
-        return 'bool*'+ ('*' * p.pointer)
+        return 'bool'+ ('*' * p.pointer)
 
     @_('VOID_TYPE pointer')
     def type(self, p):
-        return 'void*' + ('*' * p.pointer)
+        return 'void' + ('*' * p.pointer)
     
     @_('TIMES')
     def pointer(self, p):
@@ -222,17 +222,49 @@ class KParser(Parser):
     def declaration(self, p):
         return ("DECLARE", p.type, p.ID, p.expression)
     
+    @_('ID ID SEP')
+    def variable_declaration(self, p):
+        return ("DECLARE", p.ID0, p.ID1)
+    
+    @_('ID ID ASSIGN expression SEP')
+    def declaration(self, p):
+        return ("DECLARE", p.ID0 , p.ID1, p.expression)
+    
+    @_('ID pointer ID SEP')
+    def variable_declaration(self, p):
+        return ("DECLARE", p.ID0 + ('*' * p.pointer), p.ID1)
+    
+    @_('ID pointer ID ASSIGN expression SEP')
+    def declaration(self, p):
+        return ("DECLARE", p.ID0 + ('*' * p.pointer), p.ID1, p.expression)
+    
     @_('type ID SEP')
     def variable_declaration(self, p):
-        return ("DECLARE", p.type, p.ID, p.expression)
+        return ("DECLARE", p.type, p.ID)
 
     @_('ID ASSIGN expression')
     def assignment(self, p):
         return ("ASSIGN", p.ID, p.expression)
-
-    @_('pointer ID ASSIGN expression')
+    
+    @_("LPAREN expression RPAREN")
+    def expression(self, p):
+        return p.expression
+    
+    @_("expression ARROW ID")
+    def expression(self, p):
+        return ("STRUCT_ACCESS", p.expression, p.ID)
+    
+    @_("expression \'.\' ID")
+    def expression(self, p):
+        return ("STRUCT_VALUE_ACCESS", p.expression, p.ID)
+    
+    @_("expression ARROW ID ASSIGN expression")
     def assignment(self, p):
-        return ("DEREFERENCE_ASSIGN", p.ID, p.pointer, p.expression)
+        return ("STRUCT_ASSIGN", ("STRUCT_ACCESS", p.expression0, p.ID), p.expression1)
+
+    @_('pointer expression ASSIGN expression')
+    def assignment(self, p):
+        return ("DEREFERENCE_ASSIGN", p.expression0, p.pointer, p.expression1)
     
     # @_('dereference ASSIGN expression')
     # def assignment(self, p):
