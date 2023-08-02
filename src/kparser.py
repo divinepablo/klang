@@ -342,6 +342,10 @@ class KParser(Parser):
     @_('STRUCT_TYPE ID "{" struct_members "}"')
     def declaration(self, p):
         return ("DECLARE_STRUCT", p.ID, ('members', p.struct_members))
+    
+    @_('STRUCT_TYPE ID SEP')
+    def declaration(self, p):
+        return ("DEFINE_STRUCT", p.ID)
 
     @_('type ID LPAREN farg_list RPAREN SEP')
     def declaration(self, p):

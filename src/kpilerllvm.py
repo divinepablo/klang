@@ -307,14 +307,17 @@ class KPiler:
 
         for hi in parsed:
             opcode = hi[0]
-            if opcode == 'DECLARE_STRUCT':
+            
+            if opcode == 'DEFINE_STRUCT':
+                struct = ctx.get_identified_type(f'struct.{hi[1]}')
+            elif opcode == 'DECLARE_STRUCT':
                 # print(hi[2][1])
                 struct = ctx.get_identified_type(f'struct.{hi[1]}')
                 types = [llvm_types[x[1]] for x in hi[2][1]]
                 struct.set_body(*types)
                 structs_dict[struct] = {x[2]: hi[2][1].index(x) for x in hi[2][1]}
                 # print(structs_dict[struct])
-            if opcode == 'DECLARE_FUNC':
+            elif opcode == 'DECLARE_FUNC':
                 self.compile_function(hi)
             elif opcode == 'IMPORT':
                 with open(hi[1], 'r') as f:
