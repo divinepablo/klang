@@ -2,10 +2,10 @@
 worlds best new compiled language
 
 ## why?
-i was bored one day
+i was bored one day, again
 
-## why python?
-mainly because of the usage of SLY and instead of recoding the whole language in C++ with LLVM im just going to use llvmlite
+## why python and rust?
+well, i tried making it fully rust and wanted to commit because lalrpop is interesting so only the compiler is being rewritten
 
 ### TODO:
 * [ ] Finish compiler
